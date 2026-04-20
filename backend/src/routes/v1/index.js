@@ -1,0 +1,15 @@
+const express = require('express');
+const router = express.Router();
+const authRoutes = require('./auth.routes');
+const subscriptionRoutes = require('./subscription.routes');
+const deviceRoutes = require('./device.routes');
+const webRoutes = require('./web.routes');
+const stealthRoutes = require('./stealth.routes');
+const adminRoutes = require('./admin.routes');
+router.use('/auth', authRoutes);
+router.use('/subscriptions', subscriptionRoutes);
+router.use('/devices', deviceRoutes);
+router.use('/web', webRoutes);
+router.use('/stealth', stealthRoutes);
+router.use('/admin', adminRoutes);
+module.exports = router;

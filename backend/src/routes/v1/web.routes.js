@@ -1,0 +1,18 @@
+const express = require('express');
+const router = express.Router();
+const getDashboard = require('../../controllers/web/getDashboard');
+const getWebLocations = require('../../controllers/web/getLocations');
+const getAnalytics = require('../../controllers/web/getAnalytics');
+const getAlerts = require('../../controllers/web/getAlerts');
+const controlDevice = require('../../controllers/web/controlDevice');
+const getReports = require('../../controllers/web/getReports');
+const getDeviceStatus = require('../../controllers/web/getDeviceStatus');
+const authMiddleware = require('../../middleware/auth');
+router.get('/dashboard', authMiddleware, getDashboard);
+router.get('/locations', authMiddleware, getWebLocations);
+router.get('/analytics', authMiddleware, getAnalytics);
+router.get('/alerts', authMiddleware, getAlerts);
+router.post('/control', authMiddleware, controlDevice);
+router.get('/reports', authMiddleware, getReports);
+router.get('/devices', authMiddleware, getDeviceStatus);
+module.exports = router;

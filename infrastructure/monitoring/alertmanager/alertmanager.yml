@@ -1,0 +1,2 @@
+route: { receiver: 'email' }
+receivers: [ { name: 'email', email_configs: [ { to: 'admin@silentguardian.com' } ] } ]

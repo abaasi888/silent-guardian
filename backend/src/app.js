@@ -1,0 +1,16 @@
+require('dotenv').config();
+const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const connectDB = require('./config/database');
+const connectRedis = require('./config/redis');
+const errorHandler = require('./middleware/errorHandler');
+const routes = require('./routes');
+const logger = require('./config/logger');
+const app = express();
+connectDB(); connectRedis();
+app.use(helmet()); app.use(cors(require('./config/security').securityConfig.corsOptions)); app.use(express.json({ limit: '10mb' })); app.use(express.urlencoded({ extended: true }));
+app.use('/api/v1', routes);
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+app.use(errorHandler);
+module.exports = app;
