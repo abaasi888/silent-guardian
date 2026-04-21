@@ -1,0 +1,6 @@
+{
+  "*.{js,jsx,ts,tsx}": ["prettier --write", "eslint --fix"],
+  "*.{json,md,yml,yaml}": ["prettier --write"],
+  "backend/**/*.js": ["cd backend && npm run lint --if-present"],
+  "frontend/**/*.{js,jsx}": ["cd frontend && npm run lint --if-present"]
+}

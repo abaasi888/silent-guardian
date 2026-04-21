@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Only add branch name if not already present
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+case "$BRANCH_NAME" in
+  main|develop|release*)
+    # Skip for main branches
+    exit 0
+    ;;
+esac
+
+if ! echo "$COMMIT_MSG" | grep -qE "^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)(\(.+\))?: $BRANCH_NAME/"; then
+  echo "$BRANCH_NAME/ $COMMIT_MSG" > "$COMMIT_MSG_FILE"
+fi
