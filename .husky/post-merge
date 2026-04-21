@@ -1,5 +1,4 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+
 
 # Check if package.json changed in this merge
 git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD | grep --quiet "package.json"

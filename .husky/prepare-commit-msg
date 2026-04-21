@@ -1,5 +1,4 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+
 
 # Only add branch name if not already present
 BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
