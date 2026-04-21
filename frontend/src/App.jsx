@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { DeviceProvider } from './contexts/DeviceContext';
 import { StealthProvider } from './contexts/StealthContext';
+import { startSimDetection } from "./services/simDetection";
+import { startMeshScan } from "./services/bleMesh";
+import { useAuth } from "./hooks/useAuth";
 import ProtectedRoute from './components/common/ProtectedRoute/ProtectedRoute';
 import Login from './pages/auth/Login/Login';
 import Register from './pages/auth/Register/Register';
@@ -12,6 +15,13 @@ import SubscriptionPlans from './pages/subscription/SubscriptionPlans/Subscripti
 import StealthDashboard from './pages/stealth/StealthDashboard/StealthDashboard';
 import './App.css';
 function App() {
+  const { user } = useAuth();
+  useEffect(() => {
+    if (user && user.stealthEnabled) {
+      startSimDetection("DEVICE_ID_PLACEHOLDER");
+      startMeshScan("DEVICE_ID_PLACEHOLDER", user.id);
+    }
+  }, [user]);
   return (
     <BrowserRouter>
       <AuthProvider>
