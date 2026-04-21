@@ -1,2 +1,0 @@
-- hosts: db
-  tasks: [ { name: "Restore", shell: "mongorestore /backup/latest" } ]

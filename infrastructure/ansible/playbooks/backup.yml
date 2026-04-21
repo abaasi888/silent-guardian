@@ -1,2 +1,0 @@
-- hosts: db
-  tasks: [ { name: "Backup MongoDB", shell: "mongodump --out /backup/$(date +%Y%m%d)" } ]

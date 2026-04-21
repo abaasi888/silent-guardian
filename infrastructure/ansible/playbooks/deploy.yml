@@ -1,2 +1,0 @@
-- hosts: servers
-  tasks: [ { name: "Pull docker image", docker_image: { name: silentguardian/backend, source: pull }, { name: "Run container", docker_container: { name: backend, image: silentguardian/backend, ports: "5000:5000" } } ]

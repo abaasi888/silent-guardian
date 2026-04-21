@@ -1,3 +1,0 @@
-import { useEffect, useRef } from 'react';
-import io from 'socket.io-client';
-export const useWebSocket = (url) => { const socketRef = useRef(null); useEffect(() => { socketRef.current = io(url); return () => socketRef.current.disconnect(); }, [url]); return socketRef.current; };

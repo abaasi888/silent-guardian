@@ -1,7 +1,22 @@
-# Silent Guardian - Stealth GPS Tracker
-Complete IoT tracking platform with stealth PWA, offline support, hardware fingerprinting, and subscription management.
+# Silent Guardian - Complete Tracking Solution (Kotlin + React + Android)
+
+## Features
+- Kotlin backend (Spring Boot) with MongoDB, Redis, JWT
+- React frontend (Vite PWA) with KYC and USDT checkout
+- Native Android app (background GPS, BLE beacon, SMS trigger, Device Recall API)
+- Crypto payments (USDT – TRC20/BEP20)
+- KYC verification
+
 ## Quick Start
-1. Copy `.env.example` to `.env` in both backend and frontend folders and fill values.
-2. Run `make install`
-3. Run `make dev`
-4. Access frontend at http://localhost:5173, backend API at http://localhost:5000
+
+### Prerequisites
+- Java 17, MongoDB, Redis
+- Node.js 18+
+- Android SDK (for building APK)
+
+### Backend
+```bash
+cd backend
+cp .env.example .env
+# Edit .env (MONGODB_URI, JWT_SECRET, CRYPTO_WALLET_ADDRESS, etc.)
+./gradlew bootRun
