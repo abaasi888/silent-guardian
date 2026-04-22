@@ -8,6 +8,9 @@ import CryptoCheckout from './pages/CryptoCheckout'
 import LocationHistory from './pages/LocationHistory'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+// Admin imports
+import AdminLogin from './admin/pages/AdminLogin'
+import AdminDashboard from './admin/pages/AdminDashboard'
 
 function App() {
   const token = localStorage.getItem('accessToken')
@@ -21,6 +24,9 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
           <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+          
+          {/* Admin public routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Protected routes (require authentication) */}
           <Route path="/" element={
@@ -41,6 +47,13 @@ function App() {
           <Route path="/location-history" element={
             <ProtectedRoute>
               <LocationHistory />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin protected route (requires admin role) */}
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute>
+              <AdminDashboard />
             </ProtectedRoute>
           } />
 

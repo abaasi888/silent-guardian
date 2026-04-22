@@ -6,6 +6,36 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 })
 
+// ============================================================
+// MOCK LOGIN - DELETE THIS BLOCK WHEN BACKEND IS READY
+// ============================================================
+api.interceptors.request.use(async (config) => {
+  // Intercept POST /auth/login and return mock response
+  if (config.url === '/auth/login' && config.method === 'post') {
+    const { email, password } = config.data
+    // Mock successful login with any credentials
+    const mockResponse = {
+      data: {
+        accessToken: 'mock-access-token-' + Date.now(),
+        refreshToken: 'mock-refresh-token-' + Date.now(),
+        user: {
+          id: 'mock-user-123',
+          email: email || 'mock@example.com',
+          fullName: 'Mock User',
+          role: 'USER',
+          kycStatus: 'APPROVED'
+        }
+      }
+    }
+    // Prevent actual API call and return mock
+    return Promise.resolve(mockResponse)
+  }
+  return config
+}, (error) => Promise.reject(error))
+// ============================================================
+// END OF MOCK BLOCK
+// ============================================================
+
 // Request interceptor: attach access token
 api.interceptors.request.use(
   (config) => {

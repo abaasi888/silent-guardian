@@ -19,7 +19,11 @@ data class User(
     var lastLogin: Date? = null,
     var stealthEnabled: Boolean = false,
     var kycStatus: KycStatus = KycStatus.NOT_SUBMITTED,
-    var kycData: KycData? = null
+    var kycData: KycData? = null,
+    // Subscription fields added for admin portal & expiry
+    var subscriptionId: String? = null,
+    var subscriptionActive: Boolean = false,
+    var subscriptionExpiry: Date? = null
 )
 
 enum class Role { USER, ADMIN }

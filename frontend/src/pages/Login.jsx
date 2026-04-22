@@ -14,6 +14,24 @@ const Login = () => {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    // ============================================================
+    // MOCK LOGIN - DELETE THIS BLOCK WHEN BACKEND IS READY
+    // ============================================================
+    // Simulate network delay
+    setTimeout(() => {
+      localStorage.setItem('accessToken', 'mock-token-' + Date.now())
+      localStorage.setItem('refreshToken', 'mock-refresh-' + Date.now())
+      navigate('/')
+      setLoading(false)
+    }, 500)
+    return // ← Prevents real API call
+    // ============================================================
+    // END OF MOCK BLOCK
+    // ============================================================
+
+    // REAL LOGIN CODE (commented while mock is active)
+    /*
     try {
       const res = await api.post('/auth/login', { email, password })
       localStorage.setItem('accessToken', res.data.accessToken)
@@ -24,6 +42,7 @@ const Login = () => {
     } finally {
       setLoading(false)
     }
+    */
   }
 
   return (
