@@ -1,4 +1,5 @@
 package com.silentguardian.controller
+
 import com.silentguardian.model.User
 import com.silentguardian.repository.UserRepository
 import com.silentguardian.security.JwtUtil

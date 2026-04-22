@@ -1,4 +1,5 @@
 package com.silentguardian.repository
+
 import com.silentguardian.model.User
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import reactor.core.publisher.Mono

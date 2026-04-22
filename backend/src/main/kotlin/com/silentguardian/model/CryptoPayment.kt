@@ -1,4 +1,5 @@
 package com.silentguardian.model
+
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.util.Date
@@ -17,4 +18,5 @@ data class CryptoPayment(
     val createdAt: Date = Date(),
     var confirmedAt: Date? = null
 )
+
 enum class PaymentStatus { PENDING, CONFIRMED, FAILED, EXPIRED }

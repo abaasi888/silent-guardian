@@ -1,4 +1,5 @@
 package com.silentguardian.model
+
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
@@ -17,6 +18,7 @@ data class Device(
     var stealthMode: Boolean = false,
     val createdAt: Date = Date()
 )
+
 data class LocationData(val lat: Double, val lng: Double, val accuracy: Double? = null, val timestamp: Date = Date())
 data class HardwareInfo(val manufacturer: String? = null, val model: String? = null, val os: String? = null)
 enum class DeviceStatus { ACTIVE, INACTIVE, STOLEN, PENDING }

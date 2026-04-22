@@ -1,4 +1,5 @@
 package com.silentguardian.model
+
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
@@ -20,6 +21,7 @@ data class User(
     var kycStatus: KycStatus = KycStatus.NOT_SUBMITTED,
     var kycData: KycData? = null
 )
+
 enum class Role { USER, ADMIN }
 enum class KycStatus { NOT_SUBMITTED, PENDING, APPROVED, REJECTED }
 data class KycData(

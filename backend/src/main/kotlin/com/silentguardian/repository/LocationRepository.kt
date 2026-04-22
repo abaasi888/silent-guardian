@@ -1,8 +1,19 @@
-package com.silentguardian.repository
-import com.silentguardian.model.Location
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository
-import reactor.core.publisher.Flux
+package com.silentguardian.model
 
-interface LocationRepository : ReactiveMongoRepository<Location, String> {
-    fun findByDeviceIdAndUserIdOrderByTimestampDesc(deviceId: String, userId: String): Flux<Location>
-}
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
+import java.util.Date
+
+@Document("locations")
+data class Location(
+    @Id val id: String? = null,
+    val deviceId: String,
+    val userId: String,
+    val lat: Double,
+    val lng: Double,
+    val accuracy: Double? = null,
+    val speed: Double? = null,
+    val heading: Double? = null,
+    val timestamp: Date = Date(),
+    val isOffline: Boolean = false
+)
