@@ -1,4 +1,5 @@
 package com.silentguardian
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,60 +14,151 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.integrity.IntegrityManagerFactory
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var statusText: TextView
     private lateinit var startTrackingButton: Button
+    private lateinit var stopTrackingButton: Button
     private lateinit var startBeaconButton: Button
+    private lateinit var stopBeaconButton: Button
     private lateinit var recallIdButton: Button
-    companion object { private const val PERMISSION_REQUEST_CODE = 100 }
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 100
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         statusText = findViewById(R.id.statusText)
         startTrackingButton = findViewById(R.id.startTrackingButton)
+        stopTrackingButton = findViewById(R.id.stopTrackingButton)
         startBeaconButton = findViewById(R.id.startBeaconButton)
+        stopBeaconButton = findViewById(R.id.stopBeaconButton)
         recallIdButton = findViewById(R.id.recallIdButton)
-        startTrackingButton.setOnClickListener { if (checkPermissions()) startTrackingService() else requestPermissions() }
-        startBeaconButton.setOnClickListener { if (checkPermissions()) startBeaconService() else requestPermissions() }
+
+        startTrackingButton.setOnClickListener {
+            if (checkPermissions()) startTrackingService() else requestPermissions()
+        }
+        stopTrackingButton.setOnClickListener { stopTrackingService() }
+        startBeaconButton.setOnClickListener {
+            if (checkPermissions()) startBeaconService() else requestPermissions()
+        }
+        stopBeaconButton.setOnClickListener { stopBeaconService() }
         recallIdButton.setOnClickListener { storeDeviceRecallId() }
+
         checkPermissions()
         restoreDeviceRecallId()
     }
+
     private fun checkPermissions(): Boolean {
         val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        val background = if (Build.VERSION.SDK_INT >= 29) ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) else PackageManager.PERMISSION_GRANTED
-        val btAdv = if (Build.VERSION.SDK_INT >= 31) ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADVERTISE) else PackageManager.PERMISSION_GRANTED
-        val btConn = if (Build.VERSION.SDK_INT >= 31) ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) else PackageManager.PERMISSION_GRANTED
+        val background = if (Build.VERSION.SDK_INT >= 29) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        } else PackageManager.PERMISSION_GRANTED
+        val btAdv = if (Build.VERSION.SDK_INT >= 31) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADVERTISE)
+        } else PackageManager.PERMISSION_GRANTED
+        val btConn = if (Build.VERSION.SDK_INT >= 31) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+        } else PackageManager.PERMISSION_GRANTED
         val sms = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
-        return fine == PackageManager.PERMISSION_GRANTED && background == PackageManager.PERMISSION_GRANTED && btAdv == PackageManager.PERMISSION_GRANTED && btConn == PackageManager.PERMISSION_GRANTED && sms == PackageManager.PERMISSION_GRANTED
+
+        return fine == PackageManager.PERMISSION_GRANTED &&
+                background == PackageManager.PERMISSION_GRANTED &&
+                btAdv == PackageManager.PERMISSION_GRANTED &&
+                btConn == PackageManager.PERMISSION_GRANTED &&
+                sms == PackageManager.PERMISSION_GRANTED
     }
+
     private fun requestPermissions() {
         val perms = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        if (Build.VERSION.SDK_INT >= 29) perms.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-        if (Build.VERSION.SDK_INT >= 31) { perms.add(Manifest.permission.BLUETOOTH_ADVERTISE); perms.add(Manifest.permission.BLUETOOTH_CONNECT) }
+        if (Build.VERSION.SDK_INT >= 29) {
+            perms.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+        if (Build.VERSION.SDK_INT >= 31) {
+            perms.add(Manifest.permission.BLUETOOTH_ADVERTISE)
+            perms.add(Manifest.permission.BLUETOOTH_CONNECT)
+        }
         perms.add(Manifest.permission.SEND_SMS)
+
         ActivityCompat.requestPermissions(this, perms.toTypedArray(), PERMISSION_REQUEST_CODE)
     }
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) { Toast.makeText(this, "All permissions granted", Toast.LENGTH_SHORT).show(); statusText.text = "Ready" }
-            else { Toast.makeText(this, "Some permissions denied", Toast.LENGTH_SHORT).show(); statusText.text = "Permissions missing" }
+            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                Toast.makeText(this, "All permissions granted", Toast.LENGTH_SHORT).show()
+                statusText.text = "Ready"
+            } else {
+                Toast.makeText(this, "Some permissions denied", Toast.LENGTH_SHORT).show()
+                statusText.text = "Permissions missing"
+            }
         }
     }
-    private fun startTrackingService() { startService(Intent(this, TrackingService::class.java)); statusText.text = "Tracking active" }
-    private fun startBeaconService() { startService(Intent(this, BeaconService::class.java)); Toast.makeText(this, "BLE beacon started", Toast.LENGTH_SHORT).show() }
+
+    private fun startTrackingService() {
+        val intent = Intent(this, TrackingService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+        statusText.text = "Tracking active"
+    }
+
+    private fun stopTrackingService() {
+        stopService(Intent(this, TrackingService::class.java))
+        statusText.text = "Tracking stopped"
+    }
+
+    private fun startBeaconService() {
+        val intent = Intent(this, BeaconService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+        Toast.makeText(this, "BLE beacon started", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun stopBeaconService() {
+        stopService(Intent(this, BeaconService::class.java))
+        Toast.makeText(this, "BLE beacon stopped", Toast.LENGTH_SHORT).show()
+    }
+
     private fun storeDeviceRecallId() {
         val integrityManager = IntegrityManagerFactory.create(applicationContext)
-        val uuid = getSharedPreferences("silentguardian", MODE_PRIVATE).getString("deviceRecallId", null) ?: java.util.UUID.randomUUID().toString()
-        integrityManager.persistDeviceRecall(uuid.toByteArray()).addOnSuccessListener {
-            getSharedPreferences("silentguardian", MODE_PRIVATE).edit().putString("deviceRecallId", uuid).apply()
-            Toast.makeText(this, "Device Recall ID stored", Toast.LENGTH_SHORT).show()
-        }.addOnFailureListener { Toast.makeText(this, "Failed to store recall ID", Toast.LENGTH_SHORT).show() }
+        val prefs = getSharedPreferences("silentguardian", MODE_PRIVATE)
+        val uuid = prefs.getString("deviceRecallId", null) ?: java.util.UUID.randomUUID().toString()
+
+        integrityManager.persistDeviceRecall(uuid.toByteArray())
+            .addOnSuccessListener {
+                prefs.edit().putString("deviceRecallId", uuid).apply()
+                Toast.makeText(this, "Device Recall ID stored", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Failed to store recall ID: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
+
     private fun restoreDeviceRecallId() {
-        IntegrityManagerFactory.create(applicationContext).retrieveDeviceRecall().addOnSuccessListener { data ->
-            val id = String(data)
-            getSharedPreferences("silentguardian", MODE_PRIVATE).edit().putString("deviceRecallId", id).apply()
-        }.addOnFailureListener { }
+        val integrityManager = IntegrityManagerFactory.create(applicationContext)
+        integrityManager.retrieveDeviceRecall()
+            .addOnSuccessListener { data ->
+                val id = String(data)
+                getSharedPreferences("silentguardian", MODE_PRIVATE)
+                    .edit()
+                    .putString("deviceRecallId", id)
+                    .apply()
+            }
+            .addOnFailureListener {
+                // No stored ID – ignore
+            }
     }
 }

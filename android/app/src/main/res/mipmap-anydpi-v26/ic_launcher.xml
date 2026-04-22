@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background: can be a color or a drawable -->
+    <background android:drawable="@color/purple_500" />
+
+    <!-- Foreground: vector drawable with shield and eye -->
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>

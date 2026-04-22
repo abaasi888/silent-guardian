@@ -1,4 +1,66 @@
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <solid android:color="#6200EE"/>
-    <size android:width="48dp" android:height="48dp"/>
-</shape>
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Silent Guardian App Icon
+    A shield with a stylized eye representing silent protection.
+    Designed as a vector drawable compatible with all API levels.
+    For adaptive icon support on API 26+, place this in drawable/ and also define
+    a mipmap-anydpi-v26/ic_launcher.xml that references this as the foreground.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background: rounded square with brand gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <size android:width="108dp" android:height="108dp" />
+            <solid android:color="@color/purple_500" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+
+    <!-- Inner circle (lighter purple) -->
+    <item
+        android:top="12dp"
+        android:bottom="12dp"
+        android:left="12dp"
+        android:right="12dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/purple_100" />
+        </shape>
+    </item>
+
+    <!-- Shield shape -->
+    <item
+        android:top="28dp"
+        android:bottom="28dp"
+        android:left="28dp"
+        android:right="28dp">
+        <vector xmlns:android="http://schemas.android.com/apk/res/android"
+            android:width="52dp"
+            android:height="52dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:fillColor="@color/purple_700"
+                android:pathData="M12,1L3,5v6c0,5.55 3.84,10.74 9,12 5.16,-1.26 9,-6.45 9,-12V5l-9,-4z" />
+        </vector>
+    </item>
+
+    <!-- Eye (open, silent) -->
+    <item
+        android:top="44dp"
+        android:bottom="44dp"
+        android:left="44dp"
+        android:right="44dp">
+        <vector android:width="20dp"
+            android:height="20dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:fillColor="@color/white"
+                android:pathData="M12,4.5C7,4.5 2.73,7.61 1,12c1.73,4.39 6,7.5 11,7.5s9.27,-3.11 11,-7.5c-1.73,-4.39 -6,-7.5 -11,-7.5zM12,17c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5zM12,9c-1.66,0 -3,1.34 -3,3s1.34,3 3,3 3,-1.34 3,-3 -1.34,-3 -3,-3z" />
+            <!-- Slash through eye to represent "silent" / hidden -->
+            <path
+                android:fillColor="@color/purple_500"
+                android:pathData="M4,4 L20,20" />
+        </vector>
+    </item>
+</layer-list>

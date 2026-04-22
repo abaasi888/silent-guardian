@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shield shape (positioned centrally, safe zone for adaptive icon) -->
+    <path
+        android:fillColor="@color/purple_700"
+        android:pathData="M54,12 L18,30 L18,54 C18,78.9 33.8,100.2 54,108 C74.2,100.2 90,78.9 90,54 L90,30 L54,12 Z"
+        android:strokeWidth="0"
+        android:strokeColor="#00000000" />
+
+    <!-- Eye (open) inside shield -->
+    <path
+        android:fillColor="@color/white"
+        android:pathData="M54,42 C43,42 33.5,48.6 30,57 C33.5,65.4 43,72 54,72 C65,72 74.5,65.4 78,57 C74.5,48.6 65,42 54,42 Z" />
+
+    <!-- Pupil -->
+    <circle
+        android:fillColor="@color/purple_500"
+        android:cx="54"
+        android:cy="57"
+        android:radius="6" />
+
+    <!-- Diagonal slash (silent / hidden) -->
+    <path
+        android:fillColor="@color/error_red"
+        android:pathData="M38,38 L70,70"
+        android:strokeWidth="5"
+        android:strokeColor="@color/error_red"
+        android:strokeLineCap="round" />
+
+</vector>

@@ -1,31 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.silentguardian">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.silentguardian">
+
+    <!-- ======================== -->
+    <!-- Permissions              -->
+    <!-- ======================== -->
+
+    <!-- Location permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Bluetooth permissions (required for BLE beacon) -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+
+    <!-- SMS permission (for trigger) -->
     <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
+    <!-- Internet & network state -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Foreground service permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <application android:allowBackup="true" android:label="Silent Guardian" android:theme="@style/Theme.SilentGuardian">
-        <activity android:name=".MainActivity" android:exported="true">
+
+    <!-- Boot completed (auto-start) -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Wake lock (keep CPU on during operations) -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Optional: for better battery handling -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- ======================== -->
+    <!-- Hardware features       -->
+    <!-- ======================== -->
+
+    <!-- BLE hardware requirement (optional, but makes filtering explicit) -->
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.location.network"
+        android:required="false" />
+
+    <!-- ======================== -->
+    <!-- Application             -->
+    <!-- ======================== -->
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="Silent Guardian"
+        android:theme="@style/Theme.SilentGuardian"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".TrackingService" android:foregroundServiceType="location" android:exported="false" />
-        <service android:name=".BeaconService" android:exported="false" />
-        <receiver android:name=".BootReceiver" android:exported="true">
-            <intent-filter>
+
+        <!-- Location Tracking Service (foreground) -->
+        <service
+            android:name=".TrackingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location">
+        </service>
+
+        <!-- BLE Beacon Service (foreground) -->
+        <service
+            android:name=".BeaconService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice">
+        </service>
+
+        <!-- Boot Receiver (auto-start after reboot) -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".SmsReceiver" android:exported="true">
+
+        <!-- SMS Receiver (for trigger commands) -->
+        <receiver
+            android:name=".SmsReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
             <intent-filter android:priority="1000">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
+
     </application>
+
 </manifest>

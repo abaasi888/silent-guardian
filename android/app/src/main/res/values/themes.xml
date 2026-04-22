@@ -1,12 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SilentGuardian" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Base application theme (light mode) -->
+    <style name="Theme.SilentGuardian" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand colors -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
         <item name="colorOnPrimary">@color/white</item>
+
+        <!-- Secondary brand colors -->
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
+
+        <!-- Surface and background -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/black</item>
+
+        <!-- Status bar -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Navigation bar -->
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Typography (optional, inherits from Material 3 defaults) -->
+        <item name="textAppearanceHeadline1">@style/TextAppearance.Material3.Headline1</item>
+        <item name="textAppearanceHeadline2">@style/TextAppearance.Material3.Headline2</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.Material3.Body</item>
+
+        <!-- Button styles -->
+        <item name="materialButtonStyle">@style/Widget.Material3.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Material3.Button.Outlined</item>
+
+        <!-- Card view -->
+        <item name="materialCardViewStyle">@style/Widget.Material3.CardView</item>
+    </style>
+
+    <!-- Alternative theme for dark mode (automatically used by DayNight) -->
+    <style name="Theme.SilentGuardian.Dark" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/dark_primary</item>
+        <item name="colorSecondary">@color/dark_secondary</item>
+        <item name="android:colorBackground">@color/dark_background</item>
+        <item name="colorSurface">@color/dark_surface</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="android:statusBarColor">@color/dark_background</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>
