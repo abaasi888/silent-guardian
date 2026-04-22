@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#9C27B0">
+  <meta name="description" content="Silent Guardian – Real‑time device tracking and protection">
+  <meta name="keywords" content="tracking, security, guardian, ble, location">
+  <meta name="author" content="Silent Guardian Team">
+  <meta name="robots" content="index, follow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:title" content="Silent Guardian">
+  <meta property="og:description" content="Protect your devices with silent tracking and BLE beacons">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://silentguardian.com">
+  <meta property="og:image" content="/og-image.png">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Silent Guardian">
+  <meta name="twitter:description" content="Real‑time device tracking and protection">
+  
+  <!-- Security / CSP (adjust as needed) -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' ws://localhost:5000 wss://*.silentguardian.com https://api.trongrid.io https://api.bscscan.com;">
+  
+  <base href="/">
+
+  <!-- Preconnect to external origins for faster loading -->
+  <link rel="preconnect" href="https://api.trongrid.io" crossorigin>
+  <link rel="preconnect" href="https://api.bscscan.com" crossorigin>
+  
+  <!-- Standard favicon (inline SVG) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%239C27B0'/%3E%3Cpath fill='white' d='M50,20 L20,40 L20,60 C20,80 35,95 50,100 C65,95 80,80 80,60 L80,40 Z'/%3E%3C/svg%3E">
+  
+  <!-- Apple Touch Icon (for iOS/macOS) – generate 180x180 PNG and place in public/ -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <title>Silent Guardian</title>
+</head>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

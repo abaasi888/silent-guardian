@@ -1,0 +1,61 @@
+.checkout-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 1rem;
+}
+
+.checkout-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.plan-info {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+}
+
+.pay-button {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.pay-button:hover:not(:disabled) {
+  background: #f57c00;
+}
+
+.payment-details {
+  margin-top: 1rem;
+}
+
+.wallet-address {
+  background: #f5f5f5;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-family: monospace;
+  word-break: break-all;
+  margin: 1rem 0;
+}
+
+.status-text {
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.tx-hash {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+}

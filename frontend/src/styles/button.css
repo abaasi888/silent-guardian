@@ -1,0 +1,74 @@
+/* Button styles - reusable across components */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  background: #f0f0f0;
+  color: #333;
+}
+
+.btn-primary {
+  background: #9c27b0;
+  color: white;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #7b1fa2;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #ff9800;
+  color: white;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: #f57c00;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #9c27b0;
+  color: #9c27b0;
+}
+.btn-outline:hover {
+  background: #9c27b0;
+  color: white;
+}
+
+.btn-danger {
+  background: #f44336;
+  color: white;
+}
+.btn-danger:hover {
+  background: #d32f2f;
+}
+
+.btn-sm {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+}
+.btn-lg {
+  padding: 0.8rem 1.6rem;
+  font-size: 1rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-block {
+  width: 100%;
+  display: flex;
+}

@@ -1,0 +1,42 @@
+.history-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.history-container h2 {
+  color: #9c27b0;
+  margin-bottom: 1rem;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.history-item {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.history-coords {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.history-meta {
+  font-size: 0.8rem;
+  color: #666;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.error-message {
+  text-align: center;
+  color: #f44336;
+  padding: 2rem;
+}

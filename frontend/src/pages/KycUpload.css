@@ -1,0 +1,68 @@
+.kyc-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  padding: 1rem;
+}
+
+.kyc-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.kyc-card h2 {
+  margin-bottom: 1rem;
+  color: #9c27b0;
+}
+
+.kyc-status {
+  margin-bottom: 1rem;
+}
+
+.kyc-approved {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.kyc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.kyc-select, .kyc-input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.kyc-button {
+  background: #9c27b0;
+  color: white;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.kyc-button:hover:not(:disabled) {
+  background: #7b1fa2;
+}
+
+.kyc-message {
+  margin-top: 1rem;
+  text-align: center;
+  color: #f44336;
+}
