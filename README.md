@@ -59,9 +59,4 @@ silent-guardian-ultimate/
 ├── infrastructure/ # Docker compose, Terraform, K8s
 ├── docs/ # Full documentation (architecture, API, guides)
 ├── .github/workflows/ # CI/CD pipelines
-└── PROJECT_REFERENCE.md # Complete technical refere
-
-
-
-# Edit .env with your MongoDB URI, JWT secrets, crypto wallet, etc.
-./gradlew bootRun
+└── PROJECT_REFERENCE.md # Complete technical reference
