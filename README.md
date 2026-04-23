@@ -62,18 +62,6 @@ silent-guardian-ultimate/
 └── PROJECT_REFERENCE.md # Complete technical refere
 
 
-## Quick Start
 
-### Prerequisites
-- Java 17
-- Node.js 18+
-- MongoDB (running locally or via Docker)
-- Redis (running locally or via Docker)
-- Android Studio (for building APKs)
-
-### Backend
-```bash
-cd backend
-cp .env.example .env
 # Edit .env with your MongoDB URI, JWT secrets, crypto wallet, etc.
 ./gradlew bootRun
