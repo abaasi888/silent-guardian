@@ -1,31 +1,41 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import '../admin.css'  // Import admin styles
+import api from '../../services/api'
+import StatsCards from '../components/StatsCards'
+import '../admin.css'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const [users, setUsers] = useState([])
   const [devices, setDevices] = useState([])
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalDevices: 0,
+    totalEmployees: 0,
+    totalCommissions: 0
+  })
   const [loading, setLoading] = useState(true)
-
-  // Mock data (replace with API calls when backend ready)
-  const mockUsers = [
-    { id: '1', email: 'john@example.com', fullName: 'John Doe', phone: '1234567890', kycStatus: 'APPROVED', role: 'USER' },
-    { id: '2', email: 'jane@example.com', fullName: 'Jane Smith', phone: '0987654321', kycStatus: 'PENDING', role: 'USER' },
-    { id: '3', email: 'bob@example.com', fullName: 'Bob Johnson', phone: '5551234567', kycStatus: 'NOT_SUBMITTED', role: 'USER' },
-  ]
-
-  const mockDevices = [
-    { id: 'dev1', deviceName: 'iPhone 14 Pro', deviceId: 'iphone-abc123', status: 'ACTIVE', userId: '1', lastSeen: new Date().toISOString() },
-    { id: 'dev2', deviceName: 'Samsung Galaxy S23', deviceId: 'samsung-def456', status: 'STOLEN', userId: '2', lastSeen: new Date().toISOString() },
-    { id: 'dev3', deviceName: 'Google Pixel 7', deviceId: 'pixel-ghi789', status: 'INACTIVE', userId: '1', lastSeen: new Date(Date.now() - 86400000).toISOString() },
-  ]
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    // Simulate API fetch
-    setUsers(mockUsers)
-    setDevices(mockDevices)
-    setLoading(false)
+    const fetchDashboardData = async () => {
+      try {
+        const [usersRes, devicesRes, statsRes] = await Promise.all([
+          api.get('/admin/users'),
+          api.get('/admin/devices'),
+          api.get('/admin/stats')
+        ])
+        setUsers(usersRes.data)
+        setDevices(devicesRes.data)
+        setStats(statsRes.data)
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err)
+        setError('Failed to load dashboard data. Please check your connection.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchDashboardData()
   }, [])
 
   const handleLogout = () => {
@@ -33,29 +43,47 @@ export default function AdminDashboard() {
     navigate('/admin/login')
   }
 
-  const approveKyc = (userId) => {
-    setUsers(users.map(u => 
-      u.id === userId ? { ...u, kycStatus: 'APPROVED' } : u
-    ))
-    // In real app: await api.put(`/admin/users/${userId}/kyc?status=APPROVED`)
-  }
-
-  const deleteUser = (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(u => u.id !== userId))
-      // In real app: await api.delete(`/admin/users/${userId}`)
+  const approveKyc = async (userId) => {
+    try {
+      await api.put(`/admin/users/${userId}/kyc?status=APPROVED`)
+      setUsers(users.map(u => 
+        u.id === userId ? { ...u, kycStatus: 'APPROVED' } : u
+      ))
+    } catch (err) {
+      console.error('KYC approval failed:', err)
+      alert('Failed to approve KYC. Please try again.')
     }
   }
 
-  const markStolen = (deviceId) => {
-    setDevices(devices.map(d => 
-      d.deviceId === deviceId ? { ...d, status: 'STOLEN' } : d
-    ))
-    // In real app: await api.put(`/admin/devices/${deviceId}/status?status=STOLEN`)
+  const deleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return
+    try {
+      await api.delete(`/admin/users/${userId}`)
+      setUsers(users.filter(u => u.id !== userId))
+    } catch (err) {
+      console.error('User deletion failed:', err)
+      alert('Failed to delete user. Please try again.')
+    }
+  }
+
+  const markStolen = async (deviceId) => {
+    try {
+      await api.put(`/admin/devices/${deviceId}/status?status=STOLEN`)
+      setDevices(devices.map(d => 
+        d.deviceId === deviceId ? { ...d, status: 'STOLEN' } : d
+      ))
+    } catch (err) {
+      console.error('Failed to mark device stolen:', err)
+      alert('Failed to update device status. Please try again.')
+    }
   }
 
   if (loading) {
     return <div className="admin-container" style={{ textAlign: 'center', padding: '3rem' }}>Loading dashboard...</div>
+  }
+
+  if (error) {
+    return <div className="admin-container" style={{ textAlign: 'center', padding: '3rem', color: 'red' }}>{error}</div>
   }
 
   return (
@@ -66,11 +94,19 @@ export default function AdminDashboard() {
         <button onClick={handleLogout} className="logout-btn">Logout</button>
       </div>
 
+      {/* Statistics Cards */}
+      <StatsCards
+        totalUsers={stats.totalUsers}
+        totalDevices={stats.totalDevices}
+        pendingKyc={users.filter(u => u.kycStatus === 'PENDING').length}
+        activeSubscriptions={users.filter(u => u.subscriptionActive).length}
+      />
+
       {/* Users Section */}
       <div className="admin-section">
         <h2>Users</h2>
         <div className="admin-grid">
-          {users.map(user => (
+          {users.slice(0, 6).map(user => (
             <div key={user.id} className="admin-card">
               <div className="admin-card-header">
                 {user.fullName}
@@ -99,13 +135,20 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
+        {users.length > 6 && (
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <button onClick={() => navigate('/admin/users')} className="btn-admin">
+              View All Users ({users.length})
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Devices Section */}
       <div className="admin-section">
         <h2>Devices</h2>
         <div className="admin-grid">
-          {devices.map(device => (
+          {devices.slice(0, 6).map(device => (
             <div key={device.id} className="admin-card">
               <div className="admin-card-header">
                 {device.deviceName}
@@ -131,6 +174,13 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
+        {devices.length > 6 && (
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <button onClick={() => navigate('/admin/devices')} className="btn-admin">
+              View All Devices ({devices.length})
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

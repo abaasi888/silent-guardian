@@ -1,0 +1,17 @@
+.corporate-dashboard .dashboard-row {
+  margin-top: 2rem;
+}
+.dashboard-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.activity-list {
+  list-style: none;
+  padding: 0;
+}
+.activity-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}

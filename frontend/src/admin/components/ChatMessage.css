@@ -1,0 +1,43 @@
+.message-wrapper {
+  display: flex;
+  margin-bottom: 0.5rem;
+}
+
+.message-wrapper.admin {
+  justify-content: flex-end;
+}
+
+.message-wrapper.client {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 0.6rem 1rem;
+  border-radius: 18px;
+  position: relative;
+}
+
+.message-wrapper.admin .message-bubble {
+  background: #9c27b0;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message-wrapper.client .message-bubble {
+  background: #f0f0f0;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+.message-text {
+  word-wrap: break-word;
+  font-size: 0.9rem;
+}
+
+.message-time {
+  font-size: 0.65rem;
+  margin-top: 0.2rem;
+  opacity: 0.7;
+  text-align: right;
+}

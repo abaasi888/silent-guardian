@@ -1,0 +1,96 @@
+.chat-sidebar {
+  width: 280px;
+  background: #fafafa;
+  border-right: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  background: white;
+}
+
+.sidebar-header h4 {
+  margin: 0;
+  color: #333;
+}
+
+.client-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.client-item {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.client-item:hover {
+  background: #f0f0f0;
+}
+
+.client-item.active {
+  background: #e8e0f0;
+  border-left: 3px solid #9c27b0;
+}
+
+.client-avatar {
+  width: 40px;
+  height: 40px;
+  background: #9c27b0;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.client-info {
+  flex: 1;
+}
+
+.client-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.client-email {
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.unread-badge {
+  background: #f44336;
+  color: white;
+  border-radius: 12px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.client-status {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 0.75rem;
+  right: 1rem;
+}
+
+.online-dot {
+  background: #4caf50;
+  box-shadow: 0 0 0 2px white;
+}
+
+.offline-dot {
+  background: #ccc;
+}

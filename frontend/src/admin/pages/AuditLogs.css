@@ -1,0 +1,12 @@
+.audit-logs {
+  padding: 2rem;
+}
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+.audit-table th, .audit-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}

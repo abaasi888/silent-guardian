@@ -1,0 +1,33 @@
+.device-table-container {
+  background: white;
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.device-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.device-table th,
+.device-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.device-table th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.btn-stolen {
+  background: #ff9800;
+  color: white;
+}
+
+.btn-stolen:hover {
+  background: #f57c00;
+}

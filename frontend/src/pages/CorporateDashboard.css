@@ -1,0 +1,11 @@
+.corporate-dashboard {
+  padding: 2rem;
+}
+.dashboard-row {
+  margin: 2rem 0;
+}
+.recent-activity {
+  background: white;
+  border-radius: 16px;
+  padding: 1rem;
+}

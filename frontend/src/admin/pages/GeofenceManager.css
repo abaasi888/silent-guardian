@@ -1,0 +1,15 @@
+.geofence-manager {
+  padding: 2rem;
+}
+.create-geofence {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.geofence-card {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
