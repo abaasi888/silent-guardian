@@ -1,28 +1,51 @@
 import React, { useState } from 'react'
-import api from '../../services/api'
 import { useNavigate } from 'react-router-dom'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const navigate = useNavigate()
-  const handleSubmit = async (e) => {
+
+  const handleSubmit = (e) => {
     e.preventDefault()
-    try {
-      const res = await api.post('/auth/login', { email, password })
-      if (res.data.user.role !== 'ADMIN') throw new Error('Not admin')
-      localStorage.setItem('accessToken', res.data.accessToken)
-      localStorage.setItem('refreshToken', res.data.refreshToken)
+    setError('')
+
+    // MOCK LOGIN – accepts any email containing "admin"
+    if (email.toLowerCase().includes('admin')) {
+      localStorage.setItem('accessToken', 'mock-admin-token-' + Date.now())
+      localStorage.setItem('refreshToken', 'mock-refresh-token')
+      localStorage.setItem('userRole', 'ADMIN')
       navigate('/admin/dashboard')
-    } catch (err) { alert('Admin access denied') }
+    } else {
+      setError('Admin access only. Use an email with "admin"')
+    }
   }
+
   return (
-    <div style={{ maxWidth: 400, margin: '100px auto' }}>
+    <div style={{ maxWidth: 400, margin: '100px auto', padding: 20, background: 'white', borderRadius: 8 }}>
       <h2>Admin Login</h2>
       <form onSubmit={handleSubmit}>
-        <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} style={{ width: '100%', marginBottom: 10, padding: 8 }} />
-        <input type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)} style={{ width: '100%', marginBottom: 10, padding: 8 }} />
-        <button type="submit" style={{ width: '100%', padding: 10 }}>Login</button>
+        <input
+          type="email"
+          placeholder="Email (must contain 'admin')"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={{ width: '100%', marginBottom: 10, padding: 8 }}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password (any)"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ width: '100%', marginBottom: 10, padding: 8 }}
+          required
+        />
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <button type="submit" style={{ width: '100%', padding: 10, background: '#9c27b0', color: 'white', border: 'none' }}>
+          Login
+        </button>
       </form>
     </div>
   )
