@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import api from '../services/api'
 import './Login.css'
 
 const Login = () => {
@@ -10,39 +9,58 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    // ============================================================
-    // MOCK LOGIN - DELETE THIS BLOCK WHEN BACKEND IS READY
-    // ============================================================
-    // Simulate network delay
+    // MOCK LOGIN – using localStorage as fake database
     setTimeout(() => {
+      // Check if there's a pending corporate registration
+      const pending = localStorage.getItem('pendingRegistration')
+      if (pending) {
+        const pendingUser = JSON.parse(pending)
+        if (pendingUser.email === email && pendingUser.accountType === 'corporate') {
+          setError('Your corporate account is pending admin approval. Please wait.')
+          setLoading(false)
+          return
+        }
+      }
+
+      // Check registered user (approved ordinary or corporate)
+      const registered = localStorage.getItem('registeredUser')
+      if (!registered) {
+        setError('No user found. Please register first.')
+        setLoading(false)
+        return
+      }
+
+      const user = JSON.parse(registered)
+      if (user.email !== email) {
+        setError('Invalid credentials')
+        setLoading(false)
+        return
+      }
+
+      // Accept any password for demo (in real app, verify hash)
+      // Set session data
       localStorage.setItem('accessToken', 'mock-token-' + Date.now())
       localStorage.setItem('refreshToken', 'mock-refresh-' + Date.now())
+      localStorage.setItem('userType', user.accountType)
+      localStorage.setItem('userEmail', user.email)
+      localStorage.setItem('userName', user.fullName)
+
+      if (user.accountType === 'corporate') {
+        localStorage.setItem('isCorporate', 'true')
+        localStorage.setItem('multiDeviceAllowed', 'true')
+      } else {
+        localStorage.setItem('isCorporate', 'false')
+        localStorage.setItem('multiDeviceAllowed', 'false')
+      }
+
       navigate('/')
       setLoading(false)
     }, 500)
-    return // ← Prevents real API call
-    // ============================================================
-    // END OF MOCK BLOCK
-    // ============================================================
-
-    // REAL LOGIN CODE (commented while mock is active)
-    /*
-    try {
-      const res = await api.post('/auth/login', { email, password })
-      localStorage.setItem('accessToken', res.data.accessToken)
-      localStorage.setItem('refreshToken', res.data.refreshToken)
-      navigate('/')
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Check credentials.')
-    } finally {
-      setLoading(false)
-    }
-    */
   }
 
   return (

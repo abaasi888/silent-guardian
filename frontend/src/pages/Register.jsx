@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import api from '../services/api'
 import './Register.css'
 
 const Register = () => {
@@ -9,7 +8,8 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     fullName: '',
-    phone: ''
+    phone: '',
+    accountType: 'ordinary' // 'ordinary' or 'corporate'
   })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -20,7 +20,7 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
     setSuccess('')
@@ -29,16 +29,48 @@ const Register = () => {
       return
     }
     setLoading(true)
-    try {
-      const { confirmPassword, ...registerData } = formData
-      await api.post('/auth/register', registerData)
-      setSuccess('Registration successful! Redirecting to login...')
-      setTimeout(() => navigate('/login'), 2000)
-    } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed')
-    } finally {
+
+    // MOCK REGISTRATION – simulate backend storage
+    setTimeout(() => {
+      // Check if email already used in registeredUser or pending
+      const existingRegistered = localStorage.getItem('registeredUser')
+      if (existingRegistered) {
+        const user = JSON.parse(existingRegistered)
+        if (user.email === formData.email) {
+          setError('Email already registered. Please login.')
+          setLoading(false)
+          return
+        }
+      }
+      const existingPending = localStorage.getItem('pendingRegistration')
+      if (existingPending) {
+        const pending = JSON.parse(existingPending)
+        if (pending.email === formData.email) {
+          setError('This email is already pending approval.')
+          setLoading(false)
+          return
+        }
+      }
+
+      const userData = {
+        email: formData.email,
+        fullName: formData.fullName,
+        phone: formData.phone,
+        accountType: formData.accountType
+      }
+
+      if (formData.accountType === 'corporate') {
+        // Corporate: store as pending for admin approval
+        localStorage.setItem('pendingRegistration', JSON.stringify(userData))
+        setSuccess('Corporate registration request sent to admin. You will be notified when approved.')
+      } else {
+        // Ordinary: immediately registered
+        localStorage.setItem('registeredUser', JSON.stringify(userData))
+        setSuccess('Registration successful! Redirecting to login...')
+        setTimeout(() => navigate('/login'), 2000)
+      }
       setLoading(false)
-    }
+    }, 500)
   }
 
   return (
@@ -91,6 +123,27 @@ const Register = () => {
             required
             className="register-input"
           />
+          <div className="register-account-type">
+            <label>Account Type:</label>
+            <label>
+              <input
+                type="radio"
+                name="accountType"
+                value="ordinary"
+                checked={formData.accountType === 'ordinary'}
+                onChange={handleChange}
+              /> Ordinary User (one device)
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="accountType"
+                value="corporate"
+                checked={formData.accountType === 'corporate'}
+                onChange={handleChange}
+              /> Corporate (multiple devices, requires approval)
+            </label>
+          </div>
           {error && <p className="register-error">{error}</p>}
           {success && <p className="register-success">{success}</p>}
           <button type="submit" disabled={loading} className="register-button">

@@ -11,6 +11,13 @@ import TrackingMap from './components/TrackingMap'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 
+// Corporate client pages
+import CorporateDashboard from './pages/CorporateDashboard'   // your existing full corporate dashboard
+import CorporateFleet from './pages/CorporateFleet'
+import CorporateGeofences from './pages/CorporateGeofences'
+import CorporateReports from './pages/CorporateReports'
+import CorporateTeam from './pages/CorporateTeam'
+
 // Admin imports
 import AdminLogin from './admin/pages/AdminLogin'
 import AdminLayout from './admin/components/AdminLayout'
@@ -21,7 +28,7 @@ import AuditLogs from './admin/pages/AuditLogs'
 import Reports from './admin/pages/Reports'
 import UserManagement from './admin/pages/UserManagement'
 import DeviceManagement from './admin/pages/DeviceManagement'
-import CorporateDashboard from './admin/pages/CorporateDashboard'
+import CorporateDashboardAdmin from './admin/pages/CorporateDashboard'   // admin version (different name)
 import FleetManagement from './admin/pages/FleetManagement'
 import Profile from './admin/pages/Profile'
 import Settings from './admin/pages/Settings'
@@ -41,13 +48,20 @@ function App() {
           <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* Protected client routes */}
+          {/* Protected client routes (ordinary + corporate share these) */}
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/kyc" element={<ProtectedRoute><KycUpload /></ProtectedRoute>} />
           <Route path="/checkout/:planId/:amount" element={<ProtectedRoute><CryptoCheckout /></ProtectedRoute>} />
           <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
           <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
           <Route path="/tracking" element={<ProtectedRoute><div className="tracking-page"><h2>Live Device Tracking</h2><TrackingMap locations={[]} /></div></ProtectedRoute>} />
+
+          {/* Corporate client routes (only for corporate users) */}
+          <Route path="/corporate/dashboard" element={<ProtectedRoute><CorporateDashboard /></ProtectedRoute>} />
+          <Route path="/corporate/fleet" element={<ProtectedRoute><CorporateFleet /></ProtectedRoute>} />
+          <Route path="/corporate/geofences" element={<ProtectedRoute><CorporateGeofences /></ProtectedRoute>} />
+          <Route path="/corporate/reports" element={<ProtectedRoute><CorporateReports /></ProtectedRoute>} />
+          <Route path="/corporate/team" element={<ProtectedRoute><CorporateTeam /></ProtectedRoute>} />
 
           {/* Admin protected routes – all inside AdminLayout */}
           <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
@@ -59,14 +73,14 @@ function App() {
             <Route path="geofences" element={<GeofenceManager />} />
             <Route path="audit" element={<AuditLogs />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="corporate/dashboard" element={<CorporateDashboard />} />
+            <Route path="corporate/dashboard" element={<CorporateDashboardAdmin />} />
             <Route path="corporate/fleet" element={<FleetManagement />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<Settings />} />
             <Route path="chat" element={<LiveChat />} />
           </Route>
 
-          {/* Catch-all */}
+          {/* Catch-all redirect to home */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

@@ -203,3 +203,9 @@
 .logout-btn:hover {
   background: #d32f2f;
 }
+
+.flex-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
