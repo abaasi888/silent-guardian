@@ -10,6 +10,7 @@ const AdminSidebar = () => {
         <span>Admin Portal</span>
       </div>
       <nav className="sidebar-nav">
+        {/* Main Admin */}
         <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           📊 Dashboard
         </NavLink>
@@ -19,14 +20,41 @@ const AdminSidebar = () => {
         <NavLink to="/admin/devices" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           📱 Devices
         </NavLink>
-        <NavLink to="/admin/kyc-reviews" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          ✅ KYC Reviews
+        <NavLink to="/admin/employees" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          👔 Employees
         </NavLink>
-        <NavLink to="/admin/payments" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          💰 Payments
+
+        {/* Corporate / Business */}
+        <div className="nav-divider">Corporate</div>
+        <NavLink to="/admin/corporate/dashboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          🏢 Corporate Dashboard
         </NavLink>
+        <NavLink to="/admin/corporate/fleet" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          📦 Fleet Management
+        </NavLink>
+        <NavLink to="/admin/geofences" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          📍 Geofences
+        </NavLink>
+        <NavLink to="/admin/audit" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          📋 Audit Logs
+        </NavLink>
+        <NavLink to="/admin/reports" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          📊 Reports
+        </NavLink>
+
+        {/* Communication */}
+        <div className="nav-divider">Support</div>
         <NavLink to="/admin/chat" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           💬 Live Chat
+        </NavLink>
+
+        {/* Account */}
+        <div className="nav-divider">Account</div>
+        <NavLink to="/admin/profile" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          👤 Profile
+        </NavLink>
+        <NavLink to="/admin/settings" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          ⚙️ Settings
         </NavLink>
       </nav>
     </aside>

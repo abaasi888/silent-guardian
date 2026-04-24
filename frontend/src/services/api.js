@@ -1,118 +1,76 @@
+// frontend/src/services/api.js – FULL MOCK MODE (no backend)
 import axios from 'axios'
 
-// Base Axios instance with proxy configuration
-const api = axios.create({
-  baseURL: '/api/v1',
-  headers: { 'Content-Type': 'application/json' }
-})
+const api = axios.create({ baseURL: '/api/v1' })
 
-// ============================================================
-// MOCK BLOCK - DELETE WHEN BACKEND IS READY
-// ============================================================
+// Mock all requests – never goes to network
 api.interceptors.request.use(async (config) => {
-  // Mock login (supports both user and admin)
+  console.log('Mock intercepting:', config.url)
+
+  // Mock login
   if (config.url === '/auth/login' && config.method === 'post') {
     const { email } = config.data
     const isAdmin = email && email.toLowerCase().includes('admin')
-    const mockResponse = {
+    return Promise.resolve({
       data: {
-        accessToken: 'mock-token-' + Date.now(),
-        refreshToken: 'mock-refresh-' + Date.now(),
+        accessToken: 'mock-admin-token',
+        refreshToken: 'mock-refresh',
         user: {
-          id: isAdmin ? 'admin-123' : 'user-456',
-          email: email || 'mock@example.com',
-          fullName: isAdmin ? 'Admin User' : 'Regular User',
+          id: 'admin-123',
+          email: email,
+          fullName: 'Admin User',
           role: isAdmin ? 'ADMIN' : 'USER',
           kycStatus: 'APPROVED'
         }
       }
-    }
-    return Promise.resolve(mockResponse)
+    })
   }
 
-  // Mock admin endpoints
+  // Mock admin users endpoint
   if (config.url === '/admin/users') {
     return Promise.resolve({
       data: [
-        { id: '1', email: 'john@example.com', fullName: 'John Doe', kycStatus: 'APPROVED', role: 'USER' },
-        { id: '2', email: 'jane@example.com', fullName: 'Jane Smith', kycStatus: 'PENDING', role: 'USER' },
-        { id: '3', email: 'admin@example.com', fullName: 'Super Admin', kycStatus: 'APPROVED', role: 'ADMIN' }
+        { id: '1', email: 'john@example.com', fullName: 'John Doe', phone: '1234567890', kycStatus: 'APPROVED', role: 'USER' },
+        { id: '2', email: 'jane@example.com', fullName: 'Jane Smith', phone: '0987654321', kycStatus: 'PENDING', role: 'USER' },
+        { id: '3', email: 'bob@example.com', fullName: 'Bob Johnson', phone: '5551234567', kycStatus: 'NOT_SUBMITTED', role: 'USER' }
       ]
     })
   }
 
+  // Mock admin devices endpoint
   if (config.url === '/admin/devices') {
     return Promise.resolve({
       data: [
         { id: 'dev1', deviceName: 'iPhone 14 Pro', deviceId: 'iphone-abc123', status: 'ACTIVE', userId: '1', lastSeen: new Date().toISOString() },
-        { id: 'dev2', deviceName: 'Samsung Galaxy S23', deviceId: 'samsung-def456', status: 'STOLEN', userId: '2', lastSeen: new Date().toISOString() },
-        { id: 'dev3', deviceName: 'Google Pixel 7', deviceId: 'pixel-ghi789', status: 'INACTIVE', userId: '1', lastSeen: new Date(Date.now() - 86400000).toISOString() }
+        { id: 'dev2', deviceName: 'Samsung Galaxy S23', deviceId: 'samsung-def456', status: 'STOLEN', userId: '2', lastSeen: new Date().toISOString() }
       ]
     })
   }
 
-  // Mock KYC approval/rejection
-  if (config.url && config.url.startsWith('/admin/users/') && config.url.includes('/kyc')) {
-    return Promise.resolve({ data: { message: 'KYC status updated successfully' } })
+  // Mock admin stats
+  if (config.url === '/admin/stats') {
+    return Promise.resolve({
+      data: { totalUsers: 3, totalDevices: 2, totalEmployees: 0, totalCommissions: 0 }
+    })
+  }
+
+  // Mock KYC approval
+  if (config.url?.startsWith('/admin/users/') && config.url?.includes('/kyc')) {
+    return Promise.resolve({ data: { message: 'KYC updated' } })
   }
 
   // Mock user deletion
-  if (config.url && config.url.startsWith('/admin/users/') && config.method === 'delete') {
-    return Promise.resolve({ data: { message: 'User deleted successfully' } })
+  if (config.url?.startsWith('/admin/users/') && config.method === 'delete') {
+    return Promise.resolve({ data: { message: 'User deleted' } })
   }
 
-  // Mock device status update (e.g., mark stolen)
-  if (config.url && config.url.startsWith('/admin/devices/') && config.url.includes('/status')) {
-    return Promise.resolve({ data: { message: 'Device status updated successfully' } })
+  // Mock device status update
+  if (config.url?.startsWith('/admin/devices/') && config.url?.includes('/status')) {
+    return Promise.resolve({ data: { message: 'Device status updated' } })
   }
 
-  return config
-}, (error) => Promise.reject(error))
-// ============================================================
-// END OF MOCK BLOCK
-// ============================================================
-
-// Request interceptor: attach access token (only for real requests, mock bypasses this)
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('accessToken')
-    if (token && !config.url?.startsWith('/auth/login')) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => Promise.reject(error)
-)
-
-// Response interceptor: handle token refresh on 401
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (refreshToken) {
-        try {
-          const res = await axios.post('/api/v1/auth/refresh', null, {
-            headers: { Authorization: `Bearer ${refreshToken}` }
-          })
-          const newAccessToken = res.data.accessToken
-          localStorage.setItem('accessToken', newAccessToken)
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-          return api(originalRequest)
-        } catch (refreshError) {
-          localStorage.clear()
-          window.location.href = '/login'
-          return Promise.reject(refreshError)
-        }
-      } else {
-        localStorage.clear()
-        window.location.href = '/login'
-      }
-    }
-    return Promise.reject(error)
-  }
-)
+  // For any other request, return empty success
+  return Promise.resolve({ data: { message: 'Mock response' } })
+})
 
 export default api

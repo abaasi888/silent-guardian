@@ -13,20 +13,19 @@ import ProtectedRoute from './components/ProtectedRoute'
 
 // Admin imports
 import AdminLogin from './admin/pages/AdminLogin'
+import AdminLayout from './admin/components/AdminLayout'
 import AdminDashboard from './admin/pages/AdminDashboard'
 import EmployeeManagement from './admin/pages/EmployeeManagement'
 import GeofenceManager from './admin/pages/GeofenceManager'
 import AuditLogs from './admin/pages/AuditLogs'
 import Reports from './admin/pages/Reports'
-import LiveChat from './admin/components/LiveChat'
-
-// Additional admin pages (create these if missing)
-import UserManagement from './admin/pages/UserManagement'       // for /admin/users
-import DeviceManagement from './admin/pages/DeviceManagement'   // for /admin/devices
+import UserManagement from './admin/pages/UserManagement'
+import DeviceManagement from './admin/pages/DeviceManagement'
 import CorporateDashboard from './admin/pages/CorporateDashboard'
 import FleetManagement from './admin/pages/FleetManagement'
 import Profile from './admin/pages/Profile'
 import Settings from './admin/pages/Settings'
+import LiveChat from './admin/components/LiveChat'
 
 function App() {
   const token = localStorage.getItem('accessToken')
@@ -40,8 +39,6 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
           <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
-
-          {/* Admin public routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Protected client routes */}
@@ -50,34 +47,26 @@ function App() {
           <Route path="/checkout/:planId/:amount" element={<ProtectedRoute><CryptoCheckout /></ProtectedRoute>} />
           <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
           <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
-          <Route path="/tracking" element={
-            <ProtectedRoute>
-              <div className="tracking-page">
-                <h2>Live Device Tracking</h2>
-                <TrackingMap locations={[]} />
-              </div>
-            </ProtectedRoute>
-          } />
+          <Route path="/tracking" element={<ProtectedRoute><div className="tracking-page"><h2>Live Device Tracking</h2><TrackingMap locations={[]} /></div></ProtectedRoute>} />
 
-          {/* Admin protected routes */}
-          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
-          <Route path="/admin/devices" element={<ProtectedRoute><DeviceManagement /></ProtectedRoute>} />
-          <Route path="/admin/employees" element={<ProtectedRoute><div className="admin-container"><EmployeeManagement /></div></ProtectedRoute>} />
-          <Route path="/admin/geofences" element={<ProtectedRoute><div className="admin-container"><GeofenceManager /></div></ProtectedRoute>} />
-          <Route path="/admin/audit" element={<ProtectedRoute><div className="admin-container"><AuditLogs /></div></ProtectedRoute>} />
-          <Route path="/admin/reports" element={<ProtectedRoute><div className="admin-container"><Reports /></div></ProtectedRoute>} />
-          <Route path="/admin/chat" element={<ProtectedRoute><div className="admin-container"><LiveChat /></div></ProtectedRoute>} />
+          {/* Admin protected routes – all inside AdminLayout */}
+          <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+            <Route index element={<Navigate to="/admin/dashboard" />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="devices" element={<DeviceManagement />} />
+            <Route path="employees" element={<EmployeeManagement />} />
+            <Route path="geofences" element={<GeofenceManager />} />
+            <Route path="audit" element={<AuditLogs />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="corporate/dashboard" element={<CorporateDashboard />} />
+            <Route path="corporate/fleet" element={<FleetManagement />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="chat" element={<LiveChat />} />
+          </Route>
 
-          {/* Corporate routes (match sidebar links) */}
-          <Route path="/admin/corporate/dashboard" element={<ProtectedRoute><CorporateDashboard /></ProtectedRoute>} />
-          <Route path="/admin/corporate/fleet" element={<ProtectedRoute><FleetManagement /></ProtectedRoute>} />
-
-          {/* Account routes */}
-          <Route path="/admin/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/admin/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-
-          {/* Catch-all redirect to home */}
+          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
