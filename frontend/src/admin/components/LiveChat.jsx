@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import api from '../../services/api'
 import ChatSidebar from './ChatSidebar'
 import ChatMessage from './ChatMessage'
 import './LiveChat.css'
@@ -7,99 +8,117 @@ const LiveChat = () => {
   const [activeChat, setActiveChat] = useState(null)
   const [messages, setMessages] = useState([])
   const [inputMessage, setInputMessage] = useState('')
-  const [clients, setClients] = useState([])
-  const [socket, setSocket] = useState(null)
+  const [organisations, setOrganisations] = useState([])
+  const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef(null)
+  const pollingRef = useRef(null)
 
-  // Mock clients (replace with real API call)
-  const mockClients = [
-    { id: 'user1', name: 'John Doe', email: 'john@example.com', online: true, unread: 2 },
-    { id: 'user2', name: 'Jane Smith', email: 'jane@example.com', online: false, unread: 0 },
-    { id: 'user3', name: 'Bob Johnson', email: 'bob@example.com', online: true, unread: 5 },
-  ]
+  // Get current admin user
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+  const adminId = currentUser.id || 'admin1'
 
-  // Mock messages (replace with real API / WebSocket)
-  const mockMessages = {
-    user1: [
-      { id: 1, from: 'client', text: 'Hello, I need help with tracking', timestamp: new Date(Date.now() - 3600000) },
-      { id: 2, from: 'admin', text: 'Sure, how can I assist?', timestamp: new Date(Date.now() - 3500000) },
-      { id: 3, from: 'client', text: 'My device was stolen', timestamp: new Date(Date.now() - 3400000) },
-    ],
-    user2: [
-      { id: 1, from: 'client', text: 'KYC not approved yet', timestamp: new Date(Date.now() - 86400000) },
-    ],
-    user3: [
-      { id: 1, from: 'client', text: 'Subscription expired', timestamp: new Date(Date.now() - 7200000) },
-    ],
+  // Load all organisations (corporate clients)
+  const loadOrganisations = async () => {
+    try {
+      const res = await api.get('/admin/organisations')
+      // Map organisations to client format expected by ChatSidebar
+      const clients = res.data.map(org => ({
+        id: org.id,
+        name: org.name,
+        email: org.name, // placeholder
+        online: true,   // mock: assume always online for demo
+        unread: 0       // we won't track unread for now
+      }))
+      setOrganisations(clients)
+    } catch (err) {
+      console.error('Failed to load organisations', err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => {
-    // Load clients (from API or mock)
-    setClients(mockClients)
-
-    // Initialize WebSocket (replace with real backend URL)
-    const ws = new WebSocket('ws://localhost:5000/ws/chat')
-    ws.onopen = () => console.log('Chat WebSocket connected')
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      // Handle incoming message
-      if (data.from && data.message) {
-        setMessages(prev => [...prev, {
-          id: Date.now(),
-          from: 'client',
-          text: data.message,
-          timestamp: new Date()
-        }])
-      }
+  // Load messages for the selected organisation
+  const loadMessages = async (orgId) => {
+    if (!orgId) return
+    try {
+      const res = await api.get(`/chat/messages/${orgId}`)
+      // Convert stored messages to format expected by ChatMessage
+      const formattedMessages = res.data.map((msg, idx) => ({
+        id: idx,
+        from: msg.senderId === adminId ? 'admin' : 'client',
+        text: msg.message,
+        timestamp: new Date(msg.timestamp)
+      }))
+      setMessages(formattedMessages)
+    } catch (err) {
+      console.error('Failed to load messages', err)
     }
-    ws.onerror = (error) => console.error('WebSocket error:', error)
-    setSocket(ws)
+  }
 
-    return () => ws.close()
-  }, [])
-
-  useEffect(() => {
-    // Load messages when active chat changes
-    if (activeChat && mockMessages[activeChat.id]) {
-      setMessages(mockMessages[activeChat.id])
-    } else {
-      setMessages([])
-    }
-  }, [activeChat])
-
-  useEffect(() => {
-    // Scroll to bottom when new message arrives
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  const sendMessage = () => {
-    if (!inputMessage.trim() || !activeChat || !socket) return
+  // Send a message to the selected organisation
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || !activeChat) return
 
     const newMessage = {
+      organisationId: activeChat.id,
+      message: inputMessage,
+      senderId: adminId
+    }
+
+    // Optimistically add to UI
+    const tempMsg = {
       id: Date.now(),
       from: 'admin',
       text: inputMessage,
       timestamp: new Date()
     }
-    setMessages(prev => [...prev, newMessage])
-
-    // Send via WebSocket
-    socket.send(JSON.stringify({
-      to: activeChat.id,
-      message: inputMessage
-    }))
-
+    setMessages(prev => [...prev, tempMsg])
     setInputMessage('')
+
+    try {
+      await api.post('/chat/messages', newMessage)
+      // Reload messages to get the server-stored version (optional, but ensures consistency)
+      await loadMessages(activeChat.id)
+    } catch (err) {
+      console.error('Failed to send message', err)
+      // Optionally show error and remove optimistic message
+    }
   }
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') sendMessage()
   }
 
+  // Poll for new messages every 3 seconds when a chat is active
+  useEffect(() => {
+    if (activeChat) {
+      loadMessages(activeChat.id)
+      pollingRef.current = setInterval(() => {
+        loadMessages(activeChat.id)
+      }, 3000)
+      return () => clearInterval(pollingRef.current)
+    }
+  }, [activeChat])
+
+  // Initial load of organisations
+  useEffect(() => {
+    loadOrganisations()
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current)
+    }
+  }, [])
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  if (loading) return <div className="live-chat-loading">Loading chats...</div>
+
   return (
     <div className="live-chat-container">
       <ChatSidebar
-        clients={clients}
+        clients={organisations}
         activeChat={activeChat}
         onSelectChat={setActiveChat}
       />
@@ -108,9 +127,7 @@ const LiveChat = () => {
           <>
             <div className="chat-header">
               <h3>Chat with {activeChat.name}</h3>
-              <span className={`online-status ${activeChat.online ? 'online' : 'offline'}`}>
-                {activeChat.online ? 'Online' : 'Offline'}
-              </span>
+              <span className="online-status online">Online</span>
             </div>
             <div className="chat-messages">
               {messages.map(msg => (
@@ -131,7 +148,7 @@ const LiveChat = () => {
           </>
         ) : (
           <div className="no-chat-selected">
-            <p>Select a client to start chatting</p>
+            <p>Select a corporate organisation to start chatting</p>
           </div>
         )}
       </div>

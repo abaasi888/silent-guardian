@@ -29,6 +29,9 @@ const AdminSidebar = () => {
         <NavLink to="/admin/corporate/dashboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           🏢 Corporate Dashboard
         </NavLink>
+        <NavLink to="/admin/organisations" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          🏛️ Organisations
+        </NavLink>
         <NavLink to="/admin/corporate/fleet" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           📦 Fleet Management
         </NavLink>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import api from '../services/api'
 import './Login.css'
 
 const Login = () => {
@@ -9,43 +10,19 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    // MOCK LOGIN – using localStorage as fake database
-    setTimeout(() => {
-      // Check if there's a pending corporate registration
-      const pending = localStorage.getItem('pendingRegistration')
-      if (pending) {
-        const pendingUser = JSON.parse(pending)
-        if (pendingUser.email === email && pendingUser.accountType === 'corporate') {
-          setError('Your corporate account is pending admin approval. Please wait.')
-          setLoading(false)
-          return
-        }
-      }
+    try {
+      const response = await api.post('/auth/login', { email, password })
+      const { accessToken, refreshToken, user } = response.data
 
-      // Check registered user (approved ordinary or corporate)
-      const registered = localStorage.getItem('registeredUser')
-      if (!registered) {
-        setError('No user found. Please register first.')
-        setLoading(false)
-        return
-      }
-
-      const user = JSON.parse(registered)
-      if (user.email !== email) {
-        setError('Invalid credentials')
-        setLoading(false)
-        return
-      }
-
-      // Accept any password for demo (in real app, verify hash)
-      // Set session data
-      localStorage.setItem('accessToken', 'mock-token-' + Date.now())
-      localStorage.setItem('refreshToken', 'mock-refresh-' + Date.now())
+      // Store tokens and user info
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+      localStorage.setItem('currentUser', JSON.stringify(user))
       localStorage.setItem('userType', user.accountType)
       localStorage.setItem('userEmail', user.email)
       localStorage.setItem('userName', user.fullName)
@@ -58,9 +35,18 @@ const Login = () => {
         localStorage.setItem('multiDeviceAllowed', 'false')
       }
 
-      navigate('/')
+      // Redirect based on role
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard')
+      } else {
+        navigate('/')
+      }
+    } catch (err) {
+      const message = err.response?.data?.message || 'Login failed. Please try again.'
+      setError(message)
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
   return (

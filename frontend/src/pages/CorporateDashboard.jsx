@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'   // only useNavigate, not BrowserRouter etc.
+import { useNavigate } from 'react-router-dom'
+import api from '../services/api'
 import TrackingMap from '../components/TrackingMap'
 import LoadingSpinner from '../components/LoadingSpinner'
 import './CorporateDashboard.css'
@@ -8,33 +9,77 @@ const CorporateDashboard = () => {
   const navigate = useNavigate()
   const [devices, setDevices] = useState([])
   const [locations, setLocations] = useState([])
+  const [members, setMembers] = useState([])
   const [subscription, setSubscription] = useState(null)
   const [loading, setLoading] = useState(true)
   const [chatOpen, setChatOpen] = useState(false)
-  const userName = localStorage.getItem('userName') || 'Corporate User'
-  const userEmail = localStorage.getItem('userEmail') || ''
+  const [trackingDeviceId, setTrackingDeviceId] = useState(null)
+  const [trackedLocation, setTrackedLocation] = useState(null)
 
+  // Get current user from localStorage (set by login)
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}')
+  const userName = currentUser.fullName || localStorage.getItem('userName') || 'Corporate User'
+  const isCorporate = currentUser.accountType === 'corporate'
+
+  // Redirect if not corporate
   useEffect(() => {
-    // Mock data for corporate – multiple devices allowed
-    const fetchMockData = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setDevices([
-        { id: 'dev1', deviceName: 'Truck #101', deviceId: 'trk101', status: 'ACTIVE', lastSeen: new Date().toISOString() },
-        { id: 'dev2', deviceName: 'Van #205', deviceId: 'van205', status: 'ACTIVE', lastSeen: new Date().toISOString() },
-        { id: 'dev3', deviceName: 'Car #309', deviceId: 'car309', status: 'INACTIVE', lastSeen: new Date().toISOString() }
+    if (!isCorporate && localStorage.getItem('userType') !== 'corporate') {
+      navigate('/')
+    }
+  }, [isCorporate, navigate])
+
+  const loadData = async () => {
+    setLoading(true)
+    try {
+      const [devicesRes, membersRes] = await Promise.all([
+        api.get('/corporate/devices'),
+        api.get('/corporate/members')
       ])
-      setLocations([
-        { deviceId: 'trk101', lat: 40.7128, lng: -74.0060, timestamp: new Date().toISOString() },
-        { deviceId: 'van205', lat: 40.7580, lng: -73.9855, timestamp: new Date().toISOString() }
-      ])
-      setSubscription({ active: true, endDate: new Date(2025, 5, 30), amountPaid: 5000 })
+      setDevices(devicesRes.data)
+      setMembers(membersRes.data)
+
+      // Build locations from active devices (mock: use lastLocation or random)
+      const activeDevices = devicesRes.data.filter(d => d.status === 'active')
+      const mockLocations = activeDevices.map(device => ({
+        deviceId: device.deviceId,
+        lat: device.lastLocation?.lat || (40.7128 + Math.random() * 0.1),
+        lng: device.lastLocation?.lng || (-74.0060 + Math.random() * 0.1),
+        timestamp: device.lastSeen || new Date().toISOString()
+      }))
+      setLocations(mockLocations)
+
+      // Mock subscription data (can be replaced with real endpoint later)
+      setSubscription({
+        active: true,
+        endDate: new Date(2025, 5, 30),
+        amountPaid: 5000
+      })
+    } catch (error) {
+      console.error('Failed to load corporate data', error)
+    } finally {
       setLoading(false)
     }
-    fetchMockData()
+  }
+
+  useEffect(() => {
+    loadData()
   }, [])
 
   const handleViewHistory = (deviceId) => {
     navigate(`/location-history?deviceId=${deviceId}`)
+  }
+
+  const handleTrackDevice = async (deviceId) => {
+    setTrackingDeviceId(deviceId)
+    try {
+      const res = await api.get(`/corporate/devices/location/${deviceId}`)
+      setTrackedLocation(res.data.location)
+      setTimeout(() => setTrackedLocation(null), 5000)
+    } catch (error) {
+      alert('Could not fetch location')
+    } finally {
+      setTrackingDeviceId(null)
+    }
   }
 
   if (loading) return <LoadingSpinner message="Loading corporate dashboard..." />
@@ -47,6 +92,14 @@ const CorporateDashboard = () => {
           <button onClick={() => setChatOpen(!chatOpen)} className="chat-toggle-btn">💬 Support</button>
           <button onClick={() => { localStorage.clear(); navigate('/login') }} className="logout-btn">Logout</button>
         </div>
+      </div>
+
+      {/* Corporate summary stats */}
+      <div className="corporate-stats">
+        <div className="stat-card">📱 Total Devices: {devices.length}</div>
+        <div className="stat-card">🟢 Active Devices: {devices.filter(d => d.status === 'active').length}</div>
+        <div className="stat-card">👥 Team Members: {members.length}</div>
+        <div className="stat-card">📄 Pending KYC: {members.filter(m => m.kycStatus === 'pending').length}</div>
       </div>
 
       {/* Corporate subscription status */}
@@ -89,6 +142,11 @@ const CorporateDashboard = () => {
             <p>Manage sub‑accounts.</p>
             <button onClick={() => navigate('/corporate/team')} className="action-btn">Manage Team</button>
           </div>
+          <div className="corporate-card">
+            <h3>➕ Manage Devices</h3>
+            <p>Add, remove or update device status.</p>
+            <button onClick={() => navigate('/corporate/devices')} className="action-btn">Device Manager</button>
+          </div>
         </div>
 
         {/* Right column – live tracking */}
@@ -105,14 +163,27 @@ const CorporateDashboard = () => {
                 <div key={device.id} className="device-card-simple">
                   <h4>{device.deviceName}</h4>
                   <p>ID: {device.deviceId}</p>
-                  <p>Status: <span className={`status-badge ${device.status.toLowerCase()}`}>{device.status}</span></p>
-                  <button onClick={() => handleViewHistory(device.deviceId)} className="action-btn-sm">History</button>
+                  <p>Status: <span className={`status-badge ${device.status?.toLowerCase()}`}>{device.status || 'UNKNOWN'}</span></p>
+                  <div className="device-actions">
+                    <button onClick={() => handleViewHistory(device.deviceId)} className="action-btn-sm">History</button>
+                    <button onClick={() => handleTrackDevice(device.id)} className="action-btn-sm" disabled={trackingDeviceId === device.id}>
+                      {trackingDeviceId === device.id ? 'Tracking...' : 'Track Live'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Live location popup */}
+      {trackedLocation && (
+        <div className="location-popup">
+          <p>📍 Device location: {trackedLocation.lat}, {trackedLocation.lng}</p>
+          <button onClick={() => setTrackedLocation(null)}>Close</button>
+        </div>
+      )}
 
       {/* Chat sidebar */}
       {chatOpen && (
@@ -121,8 +192,14 @@ const CorporateDashboard = () => {
             <h3>Support Chat</h3>
             <button onClick={() => setChatOpen(false)}>✕</button>
           </div>
-          <div className="chat-messages"><div className="message system">Contact support...</div></div>
-          <div className="chat-input"><input type="text" placeholder="Message" /><button>Send</button></div>
+          <div className="chat-messages">
+            <div className="message system">Chat with Silent Guardian support</div>
+            <div className="message user">Hello, we need assistance with device tracking.</div>
+          </div>
+          <div className="chat-input">
+            <input type="text" placeholder="Type message..." />
+            <button>Send</button>
+          </div>
         </div>
       )}
     </div>

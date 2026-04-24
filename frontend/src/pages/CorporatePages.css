@@ -145,3 +145,64 @@
   font-size: 0.8rem;
   color: #888;
 }
+
+.btn-primary {
+  background: #9c27b0;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+.add-member-form {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+.add-member-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+.add-member-form input, .add-member-form select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.team-table th, .team-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+.team-table th {
+  background: #9c27b0;
+  color: white;
+}
+.kyc-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+.kyc-badge.approved { background: #4caf50; color: white; }
+.kyc-badge.pending { background: #ff9800; color: white; }
+.btn-sm {
+  padding: 0.3rem 0.6rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+.btn-approve { background: #2196f3; color: white; }
+.btn-danger { background: #f44336; color: white; }
+.error-msg { color: #f44336; font-size: 0.8rem; }
+.success-msg { color: #4caf50; font-size: 0.8rem; }
