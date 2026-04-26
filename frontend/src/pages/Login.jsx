@@ -26,18 +26,23 @@ const Login = () => {
       localStorage.setItem('userType', user.accountType)
       localStorage.setItem('userEmail', user.email)
       localStorage.setItem('userName', user.fullName)
+      localStorage.setItem('userRole', user.role || (user.accountType === 'admin' ? 'ADMIN' : 'USER'))
 
       if (user.accountType === 'corporate') {
         localStorage.setItem('isCorporate', 'true')
         localStorage.setItem('multiDeviceAllowed', 'true')
+      } else if (user.accountType === 'admin') {
+        localStorage.setItem('isAdmin', 'true')
       } else {
         localStorage.setItem('isCorporate', 'false')
         localStorage.setItem('multiDeviceAllowed', 'false')
       }
 
       // Redirect based on role
-      if (user.role === 'ADMIN') {
+      if (user.role === 'ADMIN' || user.accountType === 'admin') {
         navigate('/admin/dashboard')
+      } else if (user.accountType === 'corporate') {
+        navigate('/corporate/dashboard')
       } else {
         navigate('/')
       }

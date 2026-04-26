@@ -1,10 +1,17 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import './Navbar.css'
 
 const Navbar = () => {
   const navigate = useNavigate()
-  const isLoggedIn = !!localStorage.getItem('accessToken')
+  const location = useLocation()
+  const token = localStorage.getItem('accessToken')
+  const isLoggedIn = !!token
+  
+  // Don't show navbar on admin routes
+  if (location.pathname.startsWith('/admin')) {
+    return null
+  }
 
   const handleLogout = () => {
     localStorage.clear()

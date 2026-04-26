@@ -10,7 +10,6 @@ const AdminSidebar = () => {
         <span>Admin Portal</span>
       </div>
       <nav className="sidebar-nav">
-        {/* Main Admin */}
         <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           📊 Dashboard
         </NavLink>
@@ -24,20 +23,12 @@ const AdminSidebar = () => {
           👔 Employees
         </NavLink>
 
-        {/* Corporate / Business */}
-        <div className="nav-divider">Corporate</div>
-        <NavLink to="/admin/corporate/dashboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          🏢 Corporate Dashboard
-        </NavLink>
+        <div className="nav-divider">Organisations</div>
         <NavLink to="/admin/organisations" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          🏛️ Organisations
+          🏛️ Registered Organisations
         </NavLink>
-        <NavLink to="/admin/corporate/fleet" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          📦 Fleet Management
-        </NavLink>
-        <NavLink to="/admin/geofences" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          📍 Geofences
-        </NavLink>
+
+        <div className="nav-divider">System</div>
         <NavLink to="/admin/audit" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           📋 Audit Logs
         </NavLink>
@@ -45,13 +36,11 @@ const AdminSidebar = () => {
           📊 Reports
         </NavLink>
 
-        {/* Communication */}
         <div className="nav-divider">Support</div>
         <NavLink to="/admin/chat" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           💬 Live Chat
         </NavLink>
 
-        {/* Account */}
         <div className="nav-divider">Account</div>
         <NavLink to="/admin/profile" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           👤 Profile

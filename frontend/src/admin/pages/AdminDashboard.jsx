@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import '../admin.css'
 
 export default function AdminDashboard() {
@@ -14,10 +15,12 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false)
   const [deviceSearch, setDeviceSearch] = useState('')
   const [userSearch, setUserSearch] = useState('')
+  const [error, setError] = useState('')
 
   // Load all data from API
   const loadData = async () => {
     setLoading(true)
+    setError('')
     try {
       const [pendingRes, usersRes, orgRes, devicesRes] = await Promise.all([
         api.get('/admin/users/pending'),
@@ -29,9 +32,9 @@ export default function AdminDashboard() {
       setAllUsers(usersRes.data)
       setOrganisations(orgRes.data)
       setAllDevices(devicesRes.data)
-    } catch (error) {
-      console.error('Failed to load admin data', error)
-      alert('Error loading dashboard data')
+    } catch (err) {
+      console.error('Failed to load admin data', err)
+      setError('Error loading dashboard data. Please refresh.')
     } finally {
       setLoading(false)
     }
@@ -40,6 +43,20 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadData()
   }, [])
+
+  // Helper: get user name by id (works for any user type)
+  const getUserName = (userId) => {
+    if (!userId) return 'Unassigned'
+    const user = allUsers.find(u => u.id === userId)
+    return user ? user.fullName : userId
+  }
+
+  // Helper: get organisation name by id
+  const getOrganisationName = (orgId) => {
+    if (!orgId) return 'Ordinary User'
+    const org = organisations.find(o => o.id === orgId)
+    return org ? org.name : 'Unknown Org'
+  }
 
   const handleApprove = async (userId) => {
     try {
@@ -92,12 +109,13 @@ export default function AdminDashboard() {
 
   const handleTrackDevice = async () => {
     if (!trackDeviceId.trim()) {
-      alert('Please enter a Device ID (the unique identifier, e.g., van101)')
+      alert('Please enter a Device ID (e.g., van101, iphone-abc123)')
       return
     }
     try {
       const res = await api.post('/admin/track/device', { deviceId: trackDeviceId })
       setTrackLocation(res.data.location)
+      setTimeout(() => setTrackLocation(null), 8000)
     } catch (error) {
       alert('Device not found or tracking failed')
     }
@@ -108,28 +126,22 @@ export default function AdminDashboard() {
     navigate('/admin/login')
   }
 
-  // Helper: get user name by id
-  const getUserName = (userId) => {
-    const user = allUsers.find(u => u.id === userId)
-    return user ? user.fullName : userId
-  }
-
-  // Filter devices based on search (by device name, deviceId, or assigned user)
+  // Filter devices based on search
   const filteredDevices = allDevices.filter(device =>
     device.deviceName?.toLowerCase().includes(deviceSearch.toLowerCase()) ||
     device.deviceId?.toLowerCase().includes(deviceSearch.toLowerCase()) ||
     getUserName(device.assignedTo).toLowerCase().includes(deviceSearch.toLowerCase())
   )
 
-  // Filter users
+  // Filter approved users
   const filteredUsers = allUsers.filter(u =>
-    u.isApproved && (
+    u.isApproved && u.accountType !== 'admin' && (
       u.fullName?.toLowerCase().includes(userSearch.toLowerCase()) ||
       u.email?.toLowerCase().includes(userSearch.toLowerCase())
     )
   )
 
-  if (loading) return <div className="admin-loading">Loading dashboard...</div>
+  if (loading) return <LoadingSpinner message="Loading dashboard..." />
 
   return (
     <div className="admin-container">
@@ -140,6 +152,8 @@ export default function AdminDashboard() {
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </div>
+
+      {error && <div className="admin-error">{error}</div>}
 
       {/* Pending Approvals Section */}
       <div className="admin-section">
@@ -168,7 +182,7 @@ export default function AdminDashboard() {
 
       {/* All Users Section with Search */}
       <div className="admin-section">
-        <h2>All Users (Approved)</h2>
+        <h2>Approved Users</h2>
         <input
           type="text"
           placeholder="Search users by name or email..."
@@ -183,9 +197,14 @@ export default function AdminDashboard() {
               <div className="admin-card-body">
                 <p><strong>Email:</strong> {user.email}</p>
                 <p><strong>Phone:</strong> {user.phone}</p>
-                <p><strong>Role:</strong> {user.accountType === 'corporate' ? 'Corporate Admin' : (user.accountType === 'team_member' ? 'Team Member' : 'Ordinary User')}</p>
-                <p><strong>KYC:</strong> <span className={`status-badge ${user.kycStatus?.toLowerCase() || 'pending'}`}>{user.kycStatus || 'PENDING'}</span></p>
-                {user.organisationId && <p><strong>Organisation ID:</strong> {user.organisationId}</p>}
+                <p><strong>Role:</strong> {
+                  user.accountType === 'corporate' ? 'Corporate Admin' :
+                  user.accountType === 'team_member' ? 'Team Member' : 'Ordinary User'
+                }</p>
+                <p><strong>KYC:</strong> <span className={`status-badge ${user.kycStatus?.toLowerCase() || 'pending'}`}>
+                  {user.kycStatus || 'PENDING'}
+                </span></p>
+                {user.organisationId && <p><strong>Organisation:</strong> {getOrganisationName(user.organisationId)}</p>}
               </div>
               <div className="admin-card-footer">
                 {user.kycStatus !== 'approved' && (
@@ -195,6 +214,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           ))}
+          {filteredUsers.length === 0 && <p>No users match your search.</p>}
         </div>
       </div>
 
@@ -210,7 +230,7 @@ export default function AdminDashboard() {
                 <div className="admin-card-header">{org.name}</div>
                 <div className="admin-card-body">
                   <p><strong>Admin:</strong> {getUserName(org.adminId)}</p>
-                  <p><strong>KYC Status:</strong> {org.kycStatus}</p>
+                  <p><strong>KYC Status:</strong> <span className={`kyc-badge ${org.kycStatus}`}>{org.kycStatus}</span></p>
                   <p><strong>Members:</strong> {orgMembers.length}</p>
                   <p><strong>Devices:</strong> {orgDevices.length}</p>
                   <details>
@@ -225,6 +245,7 @@ export default function AdminDashboard() {
               </div>
             )
           })}
+          {organisations.length === 0 && <p>No corporate organisations yet.</p>}
         </div>
       </div>
 
@@ -240,7 +261,7 @@ export default function AdminDashboard() {
         />
         <div className="admin-grid">
           {filteredDevices.map(device => {
-            const org = organisations.find(o => o.id === device.organisationId)
+            const orgName = getOrganisationName(device.organisationId)
             return (
               <div key={device.id} className="admin-card">
                 <div className="admin-card-header">{device.deviceName}</div>
@@ -259,7 +280,7 @@ export default function AdminDashboard() {
                       <option value="STOLEN">Stolen</option>
                     </select>
                   </p>
-                  <p><strong>Organisation:</strong> {org?.name || 'Ordinary User'}</p>
+                  <p><strong>Organisation:</strong> {orgName}</p>
                   <p><strong>Assigned To:</strong> {getUserName(device.assignedTo)}</p>
                   <p><strong>Last Seen:</strong> {device.lastSeen ? new Date(device.lastSeen).toLocaleString() : 'Never'}</p>
                 </div>
@@ -273,6 +294,7 @@ export default function AdminDashboard() {
               </div>
             )
           })}
+          {filteredDevices.length === 0 && <p>No devices match your search.</p>}
         </div>
       </div>
 

@@ -10,8 +10,8 @@ const Register = () => {
     confirmPassword: '',
     fullName: '',
     phone: '',
-    accountType: 'ordinary', // 'ordinary' or 'corporate'
-    idDocument: null,   // file object or name
+    accountType: 'ordinary',
+    idDocument: null,
     selfie: null,
     businessDocs: null
   })
@@ -23,7 +23,6 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value, files } = e.target
     if (files && files.length > 0) {
-      // Mock: store the file name (in a real app you'd upload to server)
       setFormData({ ...formData, [name]: files[0].name })
     } else {
       setFormData({ ...formData, [name]: value })
@@ -34,22 +33,21 @@ const Register = () => {
     e.preventDefault()
     setError('')
     setSuccess('')
+    
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match')
       return
     }
+    
     if (!formData.idDocument || !formData.selfie) {
-      setError('Please upload ID document and a selfie picture.')
+      setError('Please upload ID document and a selfie picture')
       return
     }
-    if (formData.accountType === 'corporate' && !formData.businessDocs) {
-      setError('Please upload business registration documents for corporate account.')
-      return
-    }
+    
     setLoading(true)
 
     try {
-      const payload = {
+      const response = await api.post('/auth/register', {
         email: formData.email,
         password: formData.password,
         fullName: formData.fullName,
@@ -58,12 +56,12 @@ const Register = () => {
         idDocument: formData.idDocument,
         selfie: formData.selfie,
         businessDocs: formData.businessDocs
-      }
-      const response = await api.post('/auth/register', payload)
-      setSuccess(response.data.message || 'Registration submitted. Awaiting admin approval.')
+      })
+      
+      setSuccess(response.data.message)
       setTimeout(() => navigate('/login'), 3000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      setError(err.response?.data?.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
@@ -98,7 +96,6 @@ const Register = () => {
             placeholder="Phone Number"
             value={formData.phone}
             onChange={handleChange}
-            required
             className="register-input"
           />
           <input
@@ -119,6 +116,7 @@ const Register = () => {
             required
             className="register-input"
           />
+          
           <div className="register-account-type">
             <label>Account Type:</label>
             <label>
@@ -128,7 +126,8 @@ const Register = () => {
                 value="ordinary"
                 checked={formData.accountType === 'ordinary'}
                 onChange={handleChange}
-              /> Ordinary User (one device)
+              />
+              Ordinary User
             </label>
             <label>
               <input
@@ -137,27 +136,31 @@ const Register = () => {
                 value="corporate"
                 checked={formData.accountType === 'corporate'}
                 onChange={handleChange}
-              /> Corporate Organisation (multiple devices, requires approval)
+              />
+              Corporate Organisation
             </label>
           </div>
 
           <div className="register-file-upload">
-            <label>Upload ID Document (image/PDF):</label>
-            <input type="file" name="idDocument" onChange={handleChange} required accept="image/*,application/pdf" />
+            <label>ID Document (image/PDF):</label>
+            <input type="file" name="idDocument" onChange={handleChange} required />
           </div>
+          
           <div className="register-file-upload">
-            <label>Upload Selfie Picture:</label>
-            <input type="file" name="selfie" onChange={handleChange} required accept="image/*" />
+            <label>Selfie Picture:</label>
+            <input type="file" name="selfie" onChange={handleChange} required />
           </div>
+          
           {formData.accountType === 'corporate' && (
             <div className="register-file-upload">
-              <label>Upload Business Registration Documents:</label>
-              <input type="file" name="businessDocs" onChange={handleChange} required accept="image/*,application/pdf" />
+              <label>Business Registration Documents:</label>
+              <input type="file" name="businessDocs" onChange={handleChange} required />
             </div>
           )}
-
+          
           {error && <p className="register-error">{error}</p>}
           {success && <p className="register-success">{success}</p>}
+          
           <button type="submit" disabled={loading} className="register-button">
             {loading ? 'Registering...' : 'Register'}
           </button>

@@ -24,17 +24,14 @@ const AdminSidebar = () => {
           👔 Employees
         </NavLink>
 
-        {/* Corporate / Enterprise Features */}
-        <div className="nav-divider">Corporate</div>
-        <NavLink to="/admin/corporate/dashboard" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          🏢 Corporate Dashboard
+        {/* Corporate overview – only organisations */}
+        <div className="nav-divider">Organisations</div>
+        <NavLink to="/admin/organisations" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          🏛️ Registered Organisations
         </NavLink>
-        <NavLink to="/admin/corporate/fleet" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          📦 Fleet Management
-        </NavLink>
-        <NavLink to="/admin/geofences" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-          📍 Geofences
-        </NavLink>
+
+        {/* System */}
+        <div className="nav-divider">System</div>
         <NavLink to="/admin/audit" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           📋 Audit Logs
         </NavLink>
@@ -42,7 +39,7 @@ const AdminSidebar = () => {
           📊 Reports
         </NavLink>
 
-        {/* Communication & Support */}
+        {/* Support */}
         <div className="nav-divider">Support</div>
         <NavLink to="/admin/chat" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           💬 Live Chat

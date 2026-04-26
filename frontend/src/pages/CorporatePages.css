@@ -206,3 +206,80 @@
 .btn-danger { background: #f44336; color: white; }
 .error-msg { color: #f44336; font-size: 0.8rem; }
 .success-msg { color: #4caf50; font-size: 0.8rem; }
+
+/* Device Manager Grid */
+.devices-manager-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.device-manager-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.device-card-header {
+  background: #9c27b0;
+  color: white;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.device-card-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.device-card-body {
+  padding: 0.75rem;
+}
+.status-update {
+  margin-top: 0.5rem;
+}
+.status-update select {
+  margin-left: 0.5rem;
+  padding: 0.2rem;
+}
+.device-card-footer {
+  padding: 0.5rem 0.75rem;
+  background: #f5f5f5;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+.add-device-form {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+.add-device-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+.add-device-form input, .add-device-form select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.btn-track {
+  background: #2196f3;
+  color: white;
+}
+.location-popup {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #333;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  z-index: 1000;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
