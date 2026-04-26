@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import api from '../services/api'
+import { loginUser } from '../services/authService'
 import './Login.css'
 
 const Login = () => {
@@ -16,39 +16,17 @@ const Login = () => {
     setLoading(true)
 
     try {
-      const response = await api.post('/auth/login', { email, password })
-      const { accessToken, refreshToken, user } = response.data
-
-      // Store tokens and user info
-      localStorage.setItem('accessToken', accessToken)
-      localStorage.setItem('refreshToken', refreshToken)
-      localStorage.setItem('currentUser', JSON.stringify(user))
-      localStorage.setItem('userType', user.accountType)
-      localStorage.setItem('userEmail', user.email)
-      localStorage.setItem('userName', user.fullName)
-      localStorage.setItem('userRole', user.role || (user.accountType === 'admin' ? 'ADMIN' : 'USER'))
-
+      const user = await loginUser(email, password)
+      
       if (user.accountType === 'corporate') {
-        localStorage.setItem('isCorporate', 'true')
-        localStorage.setItem('multiDeviceAllowed', 'true')
-      } else if (user.accountType === 'admin') {
-        localStorage.setItem('isAdmin', 'true')
-      } else {
-        localStorage.setItem('isCorporate', 'false')
-        localStorage.setItem('multiDeviceAllowed', 'false')
-      }
-
-      // Redirect based on role
-      if (user.role === 'ADMIN' || user.accountType === 'admin') {
-        navigate('/admin/dashboard')
-      } else if (user.accountType === 'corporate') {
         navigate('/corporate/dashboard')
+      } else if (user.accountType === 'admin') {
+        navigate('/admin/dashboard')
       } else {
         navigate('/')
       }
     } catch (err) {
-      const message = err.response?.data?.message || 'Login failed. Please try again.'
-      setError(message)
+      setError(err)
     } finally {
       setLoading(false)
     }
@@ -82,9 +60,6 @@ const Login = () => {
         </form>
         <p className="login-footer">
           Don't have an account? <Link to="/register">Register</Link>
-        </p>
-        <p className="login-footer">
-          <Link to="/kyc">Submit KYC</Link>
         </p>
       </div>
     </div>

@@ -9,6 +9,7 @@ import LocationHistory from './pages/LocationHistory'
 import Subscriptions from './pages/Subscriptions'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import { isAuthenticated } from './services/authService'
 
 // Corporate client pages
 import CorporateDashboard from './pages/CorporateDashboard'
@@ -39,13 +40,17 @@ function App() {
       <Navbar />
       <div className="container">
         <Routes>
-          {/* Public routes - always accessible */}
+          {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* Protected routes - require login */}
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          {/* Protected routes */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/kyc" element={<ProtectedRoute><KycUpload /></ProtectedRoute>} />
           <Route path="/checkout/:planId/:amount" element={<ProtectedRoute><CryptoCheckout /></ProtectedRoute>} />
           <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
@@ -75,7 +80,7 @@ function App() {
             <Route path="chat" element={<LiveChat />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
     </BrowserRouter>
