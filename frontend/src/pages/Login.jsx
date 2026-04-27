@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { loginUser } from '../services/authService'
+import { loginUser, logoutUser } from '../services/authService'
 import './Login.css'
 
 const Login = () => {
@@ -15,17 +15,22 @@ const Login = () => {
     setError('')
     setLoading(true)
 
+    console.log('Login form submitted with:', email, password)
+
     try {
       const user = await loginUser(email, password)
+      console.log('Login successful, user:', user)
       
+      // Redirect based on user type
       if (user.accountType === 'corporate') {
-        navigate('/corporate/dashboard')
+        navigate('/corporate/dashboard', { replace: true })
       } else if (user.accountType === 'admin') {
-        navigate('/admin/dashboard')
+        navigate('/admin/dashboard', { replace: true })
       } else {
-        navigate('/')
+        navigate('/dashboard', { replace: true })
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError(err)
     } finally {
       setLoading(false)

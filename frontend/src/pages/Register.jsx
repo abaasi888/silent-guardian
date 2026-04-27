@@ -20,6 +20,8 @@ const Register = () => {
     setError('')
     setSuccess('')
     
+    console.log('Register form submitted with:', { fullName, email, password, accountType })
+    
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
@@ -36,6 +38,7 @@ const Register = () => {
         accountType
       })
       
+      console.log('Registration response:', message)
       setSuccess(message)
       
       setTimeout(() => {
@@ -43,6 +46,7 @@ const Register = () => {
       }, 2000)
       
     } catch (err) {
+      console.error('Registration error:', err)
       setError(err)
     } finally {
       setLoading(false)

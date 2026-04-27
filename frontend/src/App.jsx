@@ -9,7 +9,7 @@ import LocationHistory from './pages/LocationHistory'
 import Subscriptions from './pages/Subscriptions'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
-import { isAuthenticated } from './services/authService'
+import { getCurrentUser } from './services/authService'
 
 // Corporate client pages
 import CorporateDashboard from './pages/CorporateDashboard'
@@ -34,6 +34,23 @@ import Settings from './admin/pages/Settings'
 import LiveChat from './admin/components/LiveChat'
 import Organisations from './admin/pages/Organisations'
 
+// Component to handle role-based redirect
+const RoleBasedRedirect = () => {
+  const user = getCurrentUser()
+  
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+  
+  if (user.accountType === 'corporate') {
+    return <Navigate to="/corporate/dashboard" replace />
+  } else if (user.accountType === 'admin') {
+    return <Navigate to="/admin/dashboard" replace />
+  } else {
+    return <Navigate to="/dashboard" replace />
+  }
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -45,18 +62,17 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* Protected routes */}
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
+          {/* Role-based redirect for root path */}
+          <Route path="/" element={<RoleBasedRedirect />} />
+
+          {/* Ordinary user routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/kyc" element={<ProtectedRoute><KycUpload /></ProtectedRoute>} />
           <Route path="/checkout/:planId/:amount" element={<ProtectedRoute><CryptoCheckout /></ProtectedRoute>} />
           <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
           <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
 
-          {/* Corporate routes */}
+          {/* Corporate user routes */}
           <Route path="/corporate/dashboard" element={<ProtectedRoute><CorporateDashboard /></ProtectedRoute>} />
           <Route path="/corporate/fleet" element={<ProtectedRoute><CorporateFleet /></ProtectedRoute>} />
           <Route path="/corporate/geofences" element={<ProtectedRoute><CorporateGeofences /></ProtectedRoute>} />
