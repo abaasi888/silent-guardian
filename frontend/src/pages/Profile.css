@@ -1,0 +1,263 @@
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: calc(100vh - 70px);
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.profile-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.profile-content {
+  display: flex;
+  justify-content: center;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  max-width: 800px;
+  width: 100%;
+}
+
+.profile-avatar {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 2rem;
+  text-align: center;
+  color: white;
+}
+
+.avatar-circle {
+  width: 100px;
+  height: 100px;
+  background: #9c27b0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0 auto 1rem;
+  border: 4px solid rgba(255,255,255,0.2);
+}
+
+.profile-avatar h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.user-email {
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 0.8rem;
+}
+
+.account-badge {
+  display: inline-block;
+  padding: 0.3rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.account-badge.corporate {
+  background: #ff9800;
+  color: white;
+}
+
+.account-badge.ordinary {
+  background: #9c27b0;
+  color: white;
+}
+
+.profile-details {
+  padding: 2rem;
+}
+
+.info-section {
+  margin-bottom: 2rem;
+}
+
+.info-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 1rem;
+  border-left: 3px solid #9c27b0;
+  padding-left: 0.8rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.info-value {
+  color: #1a1a2e;
+  font-weight: 500;
+}
+
+.badge-approved {
+  background: #4caf50;
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+}
+
+.edit-btn {
+  width: 100%;
+  padding: 0.8rem;
+  background: #9c27b0;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.edit-btn:hover {
+  background: #7b1fa2;
+  transform: translateY(-2px);
+}
+
+/* Edit Form */
+.edit-form {
+  margin-top: 1rem;
+}
+
+.edit-form h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 1rem;
+  border-left: 3px solid #9c27b0;
+  padding-left: 0.8rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #9c27b0;
+}
+
+.form-divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 1.5rem 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.save-btn, .cancel-btn {
+  flex: 1;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.save-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.cancel-btn {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.cancel-btn:hover {
+  background: #e0e0e0;
+}
+
+.message {
+  padding: 0.8rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.message.success {
+  background: #e8f5e9;
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+
+.message.error {
+  background: #ffebee;
+  color: #f44336;
+  border: 1px solid #f44336;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem;
+  }
+  
+  .profile-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}

@@ -1,252 +1,135 @@
-.dashboard {
-  padding: 2rem 0;
+/* Dashboard Container */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: calc(100vh - 70px);
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
 }
 
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.chat-toggle-btn {
-  background: #2196f3;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.logout-btn {
-  background: #f44336;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* Profile & Subscription cards */
-.profile-card, .subscription-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.profile-card h3, .subscription-card h3 {
-  margin-top: 0;
-  color: #9c27b0;
-}
-
-.tier-badge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-.tier-badge.cheap { background: #4caf50; color: white; }
-.tier-badge.expensive { background: #ff9800; color: white; }
-
-.dashboard-section {
+/* Welcome Header */
+.welcome-header {
+  text-align: center;
   margin-bottom: 2rem;
 }
 
-.dashboard-section h2 {
-  margin-bottom: 1rem;
-  font-size: 1.4rem;
+.welcome-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0.5rem;
 }
 
-.devices-section {
-  margin-top: 2rem;
+.welcome-header p {
+  color: #666;
+  font-size: 1rem;
 }
 
-.devices-grid {
+/* Stats Grid */
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
   gap: 1rem;
-}
-
-.dashboard-footer {
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.action-btn {
-  background: #9c27b0;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
   cursor: pointer;
-  margin-top: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid rgba(156, 39, 176, 0.1);
 }
 
-/* Chat Sidebar */
-.chat-sidebar {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 320px;
-  height: 450px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  display: flex;
-  flex-direction: column;
-  z-index: 1000;
-  overflow: hidden;
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(156, 39, 176, 0.15);
+  border-color: rgba(156, 39, 176, 0.3);
 }
 
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background: #9c27b0;
-  color: white;
+.stat-icon {
+  font-size: 2.5rem;
 }
 
-.chat-header button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.2rem;
-  cursor: pointer;
+.stat-info h3 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
 }
 
-.chat-messages {
-  flex: 1;
-  padding: 12px;
-  overflow-y: auto;
-  background: #f9f9f9;
-}
-
-.message {
-  margin-bottom: 8px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  max-width: 80%;
-}
-
-.message.me {
-  background: #9c27b0;
-  color: white;
-  align-self: flex-end;
-  margin-left: auto;
-}
-.message.support {
-  background: #e0e0e0;
-  color: black;
-}
-.message.system {
-  background: #ffeb3b;
-  text-align: center;
-  max-width: 100%;
-  font-size: 0.8rem;
-}
-
-.chat-input {
-  display: flex;
-  padding: 8px;
-  border-top: 1px solid #eee;
-  background: white;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  margin-right: 8px;
-}
-
-.chat-input button {
-  background: #9c27b0;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 0 16px;
-  cursor: pointer;
-}
-
-/* Corporate differentiation */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 2rem;
-}
-
-.dashboard-left {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.dashboard-right {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.corporate-banner {
-  background: linear-gradient(135deg, #9c27b0, #6a1b9a);
-  color: white;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.corporate-quick-links {
-  background: white;
-  border-radius: 16px;
-  padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.corporate-quick-links h3 {
-  margin-top: 0;
-  color: #9c27b0;
-  font-size: 1.1rem;
-}
-
-.quick-links-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.quick-link {
-  background: #f0f0f0;
-  border: none;
-  padding: 0.6rem;
-  border-radius: 8px;
-  cursor: pointer;
+.stat-info p {
   font-size: 0.85rem;
-  transition: background 0.2s;
+  color: #666;
+  margin: 0;
 }
 
-.quick-link:hover {
-  background: #e0e0e0;
+/* Quick Actions Grid */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
 }
 
+.quick-action-card {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid rgba(156, 39, 176, 0.1);
+}
+
+.quick-action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(156, 39, 176, 0.15);
+  border-color: rgba(156, 39, 176, 0.3);
+}
+
+.action-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.quick-action-card h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1a1a2e;
+}
+
+.quick-action-card p {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .dashboard-grid {
+  .dashboard-container {
+    padding: 1rem;
+  }
+  
+  .welcome-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-info h3 {
+    font-size: 1.3rem;
   }
 }

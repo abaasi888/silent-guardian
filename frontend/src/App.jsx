@@ -3,7 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Profile from './pages/Profile'
 import KycUpload from './pages/KycUpload'
+import DeviceManagement from './pages/DeviceManagement'
 import CryptoCheckout from './pages/CryptoCheckout'
 import LocationHistory from './pages/LocationHistory'
 import Subscriptions from './pages/Subscriptions'
@@ -25,13 +27,13 @@ import AdminLogin from './admin/pages/AdminLogin'
 import AdminLayout from './admin/components/AdminLayout'
 import AdminDashboard from './admin/pages/AdminDashboard'
 import UserManagement from './admin/pages/UserManagement'
-import DeviceManagement from './admin/pages/DeviceManagement'
+import DeviceManagementAdmin from './admin/pages/DeviceManagement'
 import EmployeeManagement from './admin/pages/EmployeeManagement'
 import AuditLogs from './admin/pages/AuditLogs'
 import Reports from './admin/pages/Reports'
-import Profile from './admin/pages/Profile'
+import ProfileAdmin from './admin/pages/Profile'
 import Settings from './admin/pages/Settings'
-import LiveChat from './admin/components/LiveChat'
+import LiveChatAdmin from './admin/components/LiveChat'
 import Organisations from './admin/pages/Organisations'
 
 // Component to handle role-based redirect
@@ -67,7 +69,9 @@ function App() {
 
           {/* Ordinary user routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/kyc" element={<ProtectedRoute><KycUpload /></ProtectedRoute>} />
+          <Route path="/devices" element={<ProtectedRoute><DeviceManagement /></ProtectedRoute>} />
           <Route path="/checkout/:planId/:amount" element={<ProtectedRoute><CryptoCheckout /></ProtectedRoute>} />
           <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
           <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
@@ -86,16 +90,17 @@ function App() {
             <Route index element={<Navigate to="/admin/dashboard" />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
-            <Route path="devices" element={<DeviceManagement />} />
+            <Route path="devices" element={<DeviceManagementAdmin />} />
             <Route path="employees" element={<EmployeeManagement />} />
             <Route path="audit" element={<AuditLogs />} />
             <Route path="reports" element={<Reports />} />
             <Route path="organisations" element={<Organisations />} />
-            <Route path="profile" element={<Profile />} />
+            <Route path="profile" element={<ProfileAdmin />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="chat" element={<LiveChat />} />
+            <Route path="chat" element={<LiveChatAdmin />} />
           </Route>
 
+          {/* Fallback - redirect to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
