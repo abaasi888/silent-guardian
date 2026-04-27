@@ -88,8 +88,8 @@ const Subscriptions = () => {
       const params = new URLSearchParams(location.search)
       const deviceId = params.get('deviceId')
       if (deviceId) {
-        const devices = JSON.parse(localStorage.getItem('user_devices') || '[]')
-        const device = devices.find(d => d.deviceId === deviceId)
+        const devicesList = JSON.parse(localStorage.getItem('user_devices') || '[]')
+        const device = devicesList.find(d => d.deviceId === deviceId)
         if (device) {
           setSelectedDevice(device)
         }
@@ -100,9 +100,35 @@ const Subscriptions = () => {
   }, [location])
 
   const loadDevices = () => {
-    const savedDevices = localStorage.getItem('user_devices')
+    let savedDevices = localStorage.getItem('user_devices')
+    let devicesList = []
+    
     if (savedDevices) {
-      setDevices(JSON.parse(savedDevices))
+      devicesList = JSON.parse(savedDevices)
+    }
+    
+    // If no devices exist, create a default device
+    if (devicesList.length === 0) {
+      const defaultDevice = {
+        id: '1',
+        name: 'My iPhone',
+        deviceId: 'iphone123',
+        status: 'inactive',
+        lastSeen: new Date().toISOString(),
+        lastLocation: { lat: 40.7128, lng: -74.0060 },
+        subscription: null,
+        battery: 87,
+        firmware: 'v2.1.0'
+      }
+      devicesList = [defaultDevice]
+      localStorage.setItem('user_devices', JSON.stringify(devicesList))
+    }
+    
+    setDevices(devicesList)
+    
+    // Auto-select first device if none selected
+    if (!selectedDevice && devicesList.length > 0) {
+      setSelectedDevice(devicesList[0])
     }
   }
 
@@ -119,6 +145,12 @@ const Subscriptions = () => {
     if (!selectedDevice && devices.length > 0) {
       setSelectedDevice(devices[0])
     }
+    
+    if (!selectedDevice) {
+      setMessage({ type: 'error', text: 'Please add a device first' })
+      return
+    }
+    
     setShowPaymentModal(true)
   }
 
@@ -209,6 +241,7 @@ const Subscriptions = () => {
     )
     
     localStorage.setItem('user_devices', JSON.stringify(updatedDevices))
+    setDevices(updatedDevices)
     setMessage({ type: 'success', text: `${selectedPlan.name} subscription activated for ${selectedDevice.name}!` })
     setShowPaymentModal(false)
     setSelectedPlan(null)
@@ -218,6 +251,23 @@ const Subscriptions = () => {
     setTimeout(() => {
       navigate('/devices')
     }, 2000)
+  }
+
+  if (devices.length === 0) {
+    return (
+      <div className="subscriptions-container">
+        <div className="subscriptions-header">
+          <h1>Subscription Plans</h1>
+          <p>Choose the perfect plan for your device</p>
+        </div>
+        <div className="no-devices-message">
+          <p>You don't have any devices yet.</p>
+          <button className="add-device-redirect" onClick={() => navigate('/devices')}>
+            Add Your First Device
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -234,7 +284,6 @@ const Subscriptions = () => {
           value={selectedDevice?.id || ''}
           onChange={(e) => setSelectedDevice(devices.find(d => d.id === e.target.value))}
         >
-          <option value="">Select a device</option>
           {devices.map(device => (
             <option key={device.id} value={device.id}>
               {device.name} - {device.subscription?.plan || 'No plan'} {device.subscription?.active ? '(Active)' : '(Inactive)'}

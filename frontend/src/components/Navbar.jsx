@@ -10,10 +10,11 @@ const Navbar = () => {
   const user = getCurrentUser()
   const [showChat, setShowChat] = useState(false)
   
-  // Don't show navbar on login/register/admin pages
+  // Don't show navbar on login/register/admin/corporate pages
   if (location.pathname === '/login' || 
       location.pathname === '/register' || 
-      location.pathname.startsWith('/admin')) {
+      location.pathname.startsWith('/admin') ||
+      location.pathname.startsWith('/corporate')) {
     return null
   }
 

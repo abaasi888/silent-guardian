@@ -62,3 +62,30 @@
   border-radius: 8px;
   color: #666;
 }
+
+.no-devices-message {
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 20px;
+  margin-top: 2rem;
+}
+
+.no-devices-message p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.add-device-redirect {
+  background: #9c27b0;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.add-device-redirect:hover {
+  background: #7b1fa2;
+}

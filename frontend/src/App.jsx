@@ -10,6 +10,7 @@ import CryptoCheckout from './pages/CryptoCheckout'
 import LocationHistory from './pages/LocationHistory'
 import Subscriptions from './pages/Subscriptions'
 import Navbar from './components/Navbar'
+import CorporateNavbar from './components/CorporateNavbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import { getCurrentUser } from './services/authService'
 
@@ -56,7 +57,13 @@ const RoleBasedRedirect = () => {
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
+      {/* Show navbar based on current path - independent of user state */}
+      <Routes>
+        <Route path="/corporate/*" element={<CorporateNavbar />} />
+        <Route path="/admin/*" element={null} />
+        <Route path="*" element={<Navbar />} />
+      </Routes>
+      
       <div className="container">
         <Routes>
           {/* Public routes */}
