@@ -10,18 +10,8 @@ import CryptoCheckout from './pages/CryptoCheckout'
 import LocationHistory from './pages/LocationHistory'
 import Subscriptions from './pages/Subscriptions'
 import Navbar from './components/Navbar'
-import CorporateNavbar from './components/CorporateNavbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import { getCurrentUser } from './services/authService'
-
-// Corporate client pages
-import CorporateDashboard from './pages/CorporateDashboard'
-import CorporateFleet from './pages/CorporateFleet'
-import CorporateGeofences from './pages/CorporateGeofences'
-import CorporateReports from './pages/CorporateReports'
-import CorporateTeam from './pages/CorporateTeam'
-import CorporateDevices from './pages/CorporateDevices'
-import CorporateChat from './pages/CorporateChat'
 
 // Admin imports
 import AdminLogin from './admin/pages/AdminLogin'
@@ -35,7 +25,6 @@ import Reports from './admin/pages/Reports'
 import ProfileAdmin from './admin/pages/Profile'
 import Settings from './admin/pages/Settings'
 import LiveChatAdmin from './admin/components/LiveChat'
-import Organisations from './admin/pages/Organisations'
 
 // Component to handle role-based redirect
 const RoleBasedRedirect = () => {
@@ -45,9 +34,7 @@ const RoleBasedRedirect = () => {
     return <Navigate to="/login" replace />
   }
   
-  if (user.accountType === 'corporate') {
-    return <Navigate to="/corporate/dashboard" replace />
-  } else if (user.accountType === 'admin') {
+  if (user.accountType === 'admin') {
     return <Navigate to="/admin/dashboard" replace />
   } else {
     return <Navigate to="/dashboard" replace />
@@ -59,7 +46,6 @@ function App() {
     <BrowserRouter>
       {/* Show navbar based on current path - independent of user state */}
       <Routes>
-        <Route path="/corporate/*" element={<CorporateNavbar />} />
         <Route path="/admin/*" element={null} />
         <Route path="*" element={<Navbar />} />
       </Routes>
@@ -83,15 +69,6 @@ function App() {
           <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
           <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
 
-          {/* Corporate user routes */}
-          <Route path="/corporate/dashboard" element={<ProtectedRoute><CorporateDashboard /></ProtectedRoute>} />
-          <Route path="/corporate/fleet" element={<ProtectedRoute><CorporateFleet /></ProtectedRoute>} />
-          <Route path="/corporate/geofences" element={<ProtectedRoute><CorporateGeofences /></ProtectedRoute>} />
-          <Route path="/corporate/reports" element={<ProtectedRoute><CorporateReports /></ProtectedRoute>} />
-          <Route path="/corporate/team" element={<ProtectedRoute><CorporateTeam /></ProtectedRoute>} />
-          <Route path="/corporate/devices" element={<ProtectedRoute><CorporateDevices /></ProtectedRoute>} />
-          <Route path="/corporate/chat" element={<ProtectedRoute><CorporateChat /></ProtectedRoute>} />
-
           {/* Admin routes */}
           <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/admin/dashboard" />} />
@@ -101,7 +78,6 @@ function App() {
             <Route path="employees" element={<EmployeeManagement />} />
             <Route path="audit" element={<AuditLogs />} />
             <Route path="reports" element={<Reports />} />
-            <Route path="organisations" element={<Organisations />} />
             <Route path="profile" element={<ProfileAdmin />} />
             <Route path="settings" element={<Settings />} />
             <Route path="chat" element={<LiveChatAdmin />} />

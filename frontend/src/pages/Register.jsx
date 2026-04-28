@@ -9,7 +9,6 @@ const Register = () => {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [accountType, setAccountType] = useState('ordinary')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,7 +19,7 @@ const Register = () => {
     setError('')
     setSuccess('')
     
-    console.log('Register form submitted with:', { fullName, email, password, accountType })
+    console.log('Register form submitted with:', { fullName, email, password })
     
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -35,7 +34,7 @@ const Register = () => {
         email,
         phone,
         password,
-        accountType
+        accountType: 'ordinary' // Always set to ordinary
       })
       
       console.log('Registration response:', message)
@@ -97,28 +96,6 @@ const Register = () => {
             required
             className="register-input"
           />
-          
-          <div className="register-account-type">
-            <label>Account Type:</label>
-            <label>
-              <input
-                type="radio"
-                value="ordinary"
-                checked={accountType === 'ordinary'}
-                onChange={(e) => setAccountType(e.target.value)}
-              />
-              Ordinary User
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="corporate"
-                checked={accountType === 'corporate'}
-                onChange={(e) => setAccountType(e.target.value)}
-              />
-              Corporate Organisation
-            </label>
-          </div>
           
           {error && <p className="register-error">{error}</p>}
           {success && <p className="register-success">{success}</p>}
