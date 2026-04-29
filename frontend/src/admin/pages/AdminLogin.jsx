@@ -1,52 +1,90 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import '../admin.css'
 
-export default function AdminLogin() {
+const AdminLogin = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('adminUser')
+  }, [])
 
   const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
+    setLoading(true)
 
-    // MOCK LOGIN – accepts any email containing "admin"
-    if (email.toLowerCase().includes('admin')) {
-      localStorage.setItem('accessToken', 'mock-admin-token-' + Date.now())
-      localStorage.setItem('refreshToken', 'mock-refresh-token')
+    const users = JSON.parse(localStorage.getItem('sg_users') || '[]')
+    
+    let adminUser = users.find(u => u.email === email && u.accountType === 'admin')
+    
+    if (!adminUser && email === 'admin@silentguardian.com' && password === 'admin123') {
+      adminUser = {
+        id: 'admin1',
+        email: 'admin@silentguardian.com',
+        password: 'admin123',
+        fullName: 'Admin User',
+        accountType: 'admin',
+        isApproved: true,
+        role: 'ADMIN'
+      }
+      users.push(adminUser)
+      localStorage.setItem('sg_users', JSON.stringify(users))
+    }
+
+    if (adminUser && adminUser.password === password) {
+      localStorage.setItem('adminToken', 'admin-token-' + Date.now())
+      localStorage.setItem('adminUser', JSON.stringify(adminUser))
       localStorage.setItem('userRole', 'ADMIN')
+      localStorage.setItem('userEmail', adminUser.email)
+      localStorage.setItem('userName', adminUser.fullName)
       navigate('/admin/dashboard')
     } else {
-      setError('Admin access only. Use an email with "admin"')
+      setError('Invalid email or password')
     }
+    setLoading(false)
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: '100px auto', padding: 20, background: 'white', borderRadius: 8 }}>
-      <h2>Admin Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email (must contain 'admin')"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ width: '100%', marginBottom: 10, padding: 8 }}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password (any)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ width: '100%', marginBottom: 10, padding: 8 }}
-          required
-        />
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" style={{ width: '100%', padding: 10, background: '#9c27b0', color: 'white', border: 'none' }}>
-          Login
-        </button>
-      </form>
+    <div className="admin-login-container">
+      <div className="admin-login-card">
+        <div className="admin-login-header">
+          <h1>Silent Guardian</h1>
+          <p>Admin Portal Login</p>
+        </div>
+        <form onSubmit={handleSubmit} className="admin-login-form">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          {error && <p className="admin-login-error">{error}</p>}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+        <div className="admin-login-hint">
+          <p>Demo Credentials:</p>
+          <p>Email: admin@silentguardian.com</p>
+          <p>Password: admin123</p>
+        </div>
+      </div>
     </div>
   )
 }
+
+export default AdminLogin

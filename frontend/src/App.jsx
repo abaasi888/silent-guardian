@@ -11,7 +11,7 @@ import LocationHistory from './pages/LocationHistory'
 import Subscriptions from './pages/Subscriptions'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
-import { getCurrentUser } from './services/authService'
+import { getCurrentUser, isAuthenticated } from './services/authService'
 
 // Admin imports
 import AdminLogin from './admin/pages/AdminLogin'
@@ -29,6 +29,11 @@ import LiveChatAdmin from './admin/components/LiveChat'
 // Component to handle role-based redirect
 const RoleBasedRedirect = () => {
   const user = getCurrentUser()
+  const adminToken = localStorage.getItem('adminToken')
+  
+  if (adminToken) {
+    return <Navigate to="/admin/dashboard" replace />
+  }
   
   if (!user) {
     return <Navigate to="/login" replace />
@@ -42,14 +47,12 @@ const RoleBasedRedirect = () => {
 }
 
 function App() {
+  const authenticated = isAuthenticated()
+  const adminToken = localStorage.getItem('adminToken')
+
   return (
     <BrowserRouter>
-      {/* Show navbar based on current path - independent of user state */}
-      <Routes>
-        <Route path="/admin/*" element={null} />
-        <Route path="*" element={<Navbar />} />
-      </Routes>
-      
+      <Navbar />
       <div className="container">
         <Routes>
           {/* Public routes */}
@@ -61,16 +64,48 @@ function App() {
           <Route path="/" element={<RoleBasedRedirect />} />
 
           {/* Ordinary user routes */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/kyc" element={<ProtectedRoute><KycUpload /></ProtectedRoute>} />
-          <Route path="/devices" element={<ProtectedRoute><DeviceManagement /></ProtectedRoute>} />
-          <Route path="/checkout/:planId/:amount" element={<ProtectedRoute><CryptoCheckout /></ProtectedRoute>} />
-          <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
-          <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/kyc" element={
+            <ProtectedRoute>
+              <KycUpload />
+            </ProtectedRoute>
+          } />
+          <Route path="/devices" element={
+            <ProtectedRoute>
+              <DeviceManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/checkout/:planId/:amount" element={
+            <ProtectedRoute>
+              <CryptoCheckout />
+            </ProtectedRoute>
+          } />
+          <Route path="/location-history" element={
+            <ProtectedRoute>
+              <LocationHistory />
+            </ProtectedRoute>
+          } />
+          <Route path="/subscriptions" element={
+            <ProtectedRoute>
+              <Subscriptions />
+            </ProtectedRoute>
+          } />
 
           {/* Admin routes */}
-          <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
             <Route index element={<Navigate to="/admin/dashboard" />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />

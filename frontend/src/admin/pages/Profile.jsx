@@ -1,111 +1,88 @@
-// frontend/src/admin/pages/Profile.jsx
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import api from '../../services/api'
-import './Profile.css'
+import '../admin.css'
 
-export default function Profile() {
-  const navigate = useNavigate()
+const Profile = () => {
   const [profile, setProfile] = useState({
     fullName: '',
     email: '',
     phone: '',
-    role: '',
-    kycStatus: ''
+    role: ''
   })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        // Fetch user details (add `/auth/me` endpoint if missing, or use combined data)
-        const userRes = await api.get('/auth/me') // assumes endpoint exists
-        const kycRes = await api.get('/kyc/status')
-        setProfile({
-          fullName: userRes.data.fullName || '',
-          email: userRes.data.email || '',
-          phone: userRes.data.phone || '',
-          role: userRes.data.role || '',
-          kycStatus: kycRes.data.status || ''
-        })
-      } catch (err) {
-        console.error('Failed to load profile', err)
-        setMessage('Could not load profile data. Please try again later.')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchProfile()
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}')
+    setProfile({
+      fullName: adminUser.fullName || localStorage.getItem('userName') || 'Admin User',
+      email: adminUser.email || localStorage.getItem('userEmail') || 'admin@silentguardian.com',
+      phone: '+1 234 567 8900',
+      role: 'Super Admin'
+    })
   }, [])
 
-  const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value })
+  const handleSave = () => {
+    localStorage.setItem('userName', profile.fullName)
+    localStorage.setItem('userEmail', profile.email)
+    
+    const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}')
+    adminUser.fullName = profile.fullName
+    adminUser.email = profile.email
+    localStorage.setItem('adminUser', JSON.stringify(adminUser))
+    
+    const allUsers = JSON.parse(localStorage.getItem('sg_users') || '[]')
+    const updatedUsers = allUsers.map(u => 
+      u.id === 'admin1' ? { ...u, fullName: profile.fullName, email: profile.email } : u
+    )
+    localStorage.setItem('sg_users', JSON.stringify(updatedUsers))
+    
+    setIsEditing(false)
+    alert('Profile updated successfully!')
   }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    setMessage('')
-    try {
-      await api.put('/auth/profile', {
-        fullName: profile.fullName,
-        phone: profile.phone
-      })
-      setMessage('Profile updated successfully')
-    } catch (err) {
-      setMessage('Update failed: ' + (err.response?.data?.message || err.message))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleLogout = () => {
-    localStorage.clear()
-    navigate('/admin/login')
-  }
-
-  if (loading) return <div className="admin-container profile-container">Loading profile...</div>
 
   return (
-    <div className="admin-container profile-container">
+    <div className="admin-container">
       <div className="admin-header">
-        <h1>My Profile</h1>
-        <button onClick={handleLogout} className="logout-btn">Logout</button>
+        <h1>Admin Profile</h1>
       </div>
 
-      {message && (
-        <div className={`alert ${message.includes('success') ? 'alert-success' : 'alert-error'}`}>
-          {message}
+      <div className="profile-card">
+        <div className="profile-avatar">
+          <div className="avatar-circle">{profile.fullName.charAt(0)}</div>
         </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="profile-form">
-        <div className="form-group">
-          <label>Full Name</label>
-          <input type="text" name="fullName" value={profile.fullName} onChange={handleChange} required />
+        
+        <div className="profile-info">
+          {isEditing ? (
+            <>
+              <div className="form-group">
+                <label>Full Name</label>
+                <input type="text" value={profile.fullName} onChange={(e) => setProfile({...profile, fullName: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Phone</label>
+                <input type="tel" value={profile.phone} onChange={(e) => setProfile({...profile, phone: e.target.value})} />
+              </div>
+              <div className="form-actions">
+                <button className="save-btn" onClick={handleSave}>Save</button>
+                <button className="cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="info-row"><strong>Full Name:</strong> {profile.fullName}</div>
+              <div className="info-row"><strong>Email:</strong> {profile.email}</div>
+              <div className="info-row"><strong>Phone:</strong> {profile.phone}</div>
+              <div className="info-row"><strong>Role:</strong> {profile.role}</div>
+              <button className="edit-btn" onClick={() => setIsEditing(true)}>Edit Profile</button>
+            </>
+          )}
         </div>
-        <div className="form-group">
-          <label>Email</label>
-          <input type="email" name="email" value={profile.email} disabled />
-        </div>
-        <div className="form-group">
-          <label>Phone</label>
-          <input type="tel" name="phone" value={profile.phone} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label>Role</label>
-          <input type="text" value={profile.role} disabled />
-        </div>
-        <div className="form-group">
-          <label>KYC Status</label>
-          <input type="text" value={profile.kycStatus} disabled />
-        </div>
-        <button type="submit" disabled={saving} className="btn-admin">
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
-      </form>
+      </div>
     </div>
   )
 }
+
+export default Profile

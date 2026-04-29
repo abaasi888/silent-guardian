@@ -9,6 +9,7 @@ const Register = () => {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [accountType, setAccountType] = useState('ordinary')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,26 +20,35 @@ const Register = () => {
     setError('')
     setSuccess('')
     
-    console.log('Register form submitted with:', { fullName, email, password })
-    
     if (password !== confirmPassword) {
       setError('Passwords do not match')
+      return
+    }
+    
+    if (!fullName || !email || !password) {
+      setError('Please fill all required fields')
       return
     }
     
     setLoading(true)
 
     try {
-      const message = await registerUser({
+      const response = await registerUser({
         fullName,
         email,
         phone,
         password,
-        accountType: 'ordinary' // Always set to ordinary
+        accountType
       })
       
-      console.log('Registration response:', message)
-      setSuccess(message)
+      setSuccess(response.message || 'Registration successful! Please login.')
+      
+      // Clear form
+      setFullName('')
+      setEmail('')
+      setPhone('')
+      setPassword('')
+      setConfirmPassword('')
       
       setTimeout(() => {
         navigate('/login')
@@ -46,7 +56,7 @@ const Register = () => {
       
     } catch (err) {
       console.error('Registration error:', err)
-      setError(err)
+      setError(err.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -96,6 +106,28 @@ const Register = () => {
             required
             className="register-input"
           />
+          
+          <div className="register-account-type">
+            <label>Account Type:</label>
+            <label>
+              <input
+                type="radio"
+                value="ordinary"
+                checked={accountType === 'ordinary'}
+                onChange={(e) => setAccountType(e.target.value)}
+              />
+              Ordinary User
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="corporate"
+                checked={accountType === 'corporate'}
+                onChange={(e) => setAccountType(e.target.value)}
+              />
+              Corporate Organisation
+            </label>
+          </div>
           
           {error && <p className="register-error">{error}</p>}
           {success && <p className="register-success">{success}</p>}

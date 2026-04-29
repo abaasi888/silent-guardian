@@ -1,113 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
-import './UserManagement.css';
+import React, { useState, useEffect } from 'react'
+import '../admin.css'
 
-export default function UserManagement() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+const UserManagement = () => {
+  const [users, setUsers] = useState([])
+  const [filteredUsers, setFilteredUsers] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    loadUsers()
+  }, [])
 
-  const fetchUsers = async () => {
-    try {
-      const res = await api.get('/admin/users');
-      setUsers(res.data);
-    } catch (err) {
-      console.error('Fetch users error:', err);
-      setError('Failed to load users. Please try again later.');
-    } finally {
-      setLoading(false);
+  const loadUsers = () => {
+    const allUsers = JSON.parse(localStorage.getItem('sg_users') || '[]')
+    const regularUsers = allUsers.filter(u => u.accountType !== 'admin')
+    setUsers(regularUsers)
+    setFilteredUsers(regularUsers)
+    setLoading(false)
+  }
+
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase()
+    setSearchTerm(term)
+    const filtered = users.filter(user => 
+      user.fullName?.toLowerCase().includes(term) ||
+      user.email?.toLowerCase().includes(term)
+    )
+    setFilteredUsers(filtered)
+  }
+
+  const approveKyc = (userId) => {
+    const allUsers = JSON.parse(localStorage.getItem('sg_users') || '[]')
+    const updatedUsers = allUsers.map(user => 
+      user.id === userId ? { ...user, kycStatus: 'approved' } : user
+    )
+    localStorage.setItem('sg_users', JSON.stringify(updatedUsers))
+    loadUsers()
+    alert('KYC approved successfully!')
+  }
+
+  const deleteUser = (userId) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      const allUsers = JSON.parse(localStorage.getItem('sg_users') || '[]')
+      const updatedUsers = allUsers.filter(user => user.id !== userId)
+      localStorage.setItem('sg_users', JSON.stringify(updatedUsers))
+      loadUsers()
+      alert('User deleted successfully!')
     }
-  };
+  }
 
-  const approveKyc = async (userId) => {
-    try {
-      await api.put(`/admin/users/${userId}/kyc?status=APPROVED`);
-      setUsers(prevUsers =>
-        prevUsers.map(u =>
-          u.id === userId ? { ...u, kycStatus: 'APPROVED' } : u
-        )
-      );
-    } catch (err) {
-      console.error('KYC approval error:', err);
-      alert('Approval failed. Please check the console for details.');
-    }
-  };
-
-  const deleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      return;
-    }
-    try {
-      await api.delete(`/admin/users/${userId}`);
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-    } catch (err) {
-      console.error('Delete user error:', err);
-      alert('Delete failed. Please check the console for details.');
-    }
-  };
-
-  const getKycStatusClass = (status) => {
-    if (!status) return 'status-badge pending';
-    return `status-badge ${status.toLowerCase()}`;
-  };
-
-  if (loading) return <div className="admin-container">Loading users...</div>;
-  if (error) return <div className="admin-container error">{error}</div>;
+  if (loading) {
+    return <div className="admin-loading">Loading users...</div>
+  }
 
   return (
     <div className="admin-container">
       <div className="admin-header">
         <h1>User Management</h1>
-        <button onClick={fetchUsers} className="btn-refresh">Refresh</button>
+        <button onClick={loadUsers} className="refresh-btn">🔄 Refresh</button>
       </div>
-      <div className="table-responsive">
+
+      <div className="admin-search">
+        <input
+          type="text"
+          placeholder="Search by name or email..."
+          value={searchTerm}
+          onChange={handleSearch}
+          className="search-input"
+        />
+      </div>
+
+      <div className="admin-table-container">
         <table className="admin-table">
           <thead>
             <tr>
               <th>Name</th>
               <th>Email</th>
               <th>Phone</th>
+              <th>Account Type</th>
               <th>KYC Status</th>
-              <th>Role</th>
+              <th>Joined</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
-              <tr>
-                <td colSpan="6" style={{ textAlign: 'center' }}>No users found</td>
-              </tr>
+            {filteredUsers.length === 0 ? (
+              <tr><td colSpan="7" className="no-data">No users found</td></tr>
             ) : (
-              users.map(user => (
+              filteredUsers.map(user => (
                 <tr key={user.id}>
-                  <td>{user.fullName || user.name || 'N/A'}</td>
+                  <td>{user.fullName}</td>
                   <td>{user.email}</td>
-                  <td>{user.phone || 'N/A'}</td>
-                  <td>
-                    <span className={getKycStatusClass(user.kycStatus)}>
-                      {user.kycStatus || 'PENDING'}
-                    </span>
-                  </td>
-                  <td>{user.role || 'USER'}</td>
-                  <td>
-                    {user.kycStatus !== 'APPROVED' && (
-                      <button
-                        onClick={() => approveKyc(user.id)}
-                        className="btn-table btn-approve"
-                      >
-                        Approve KYC
-                      </button>
+                  <td>{user.phone || '—'}</td>
+                  <td>{user.accountType === 'corporate' ? 'Corporate' : 'Ordinary'}</td>
+                  <td><span className={`status-badge ${user.kycStatus || 'pending'}`}>{user.kycStatus || 'pending'}</span></td>
+                  <td>{new Date(user.createdAt || Date.now()).toLocaleDateString()}</td>
+                  <td className="action-cell">
+                    {user.kycStatus !== 'approved' && (
+                      <button className="approve-btn" onClick={() => approveKyc(user.id)}>Approve KYC</button>
                     )}
-                    <button
-                      onClick={() => deleteUser(user.id)}
-                      className="btn-table btn-delete"
-                    >
-                      Delete
-                    </button>
+                    <button className="delete-btn" onClick={() => deleteUser(user.id)}>Delete</button>
                   </td>
                 </tr>
               ))
@@ -116,5 +108,7 @@ export default function UserManagement() {
         </table>
       </div>
     </div>
-  );
+  )
 }
+
+export default UserManagement
