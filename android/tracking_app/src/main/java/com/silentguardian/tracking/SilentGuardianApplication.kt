@@ -25,6 +25,7 @@ class SilentGuardianApplication : Application() {
         sessionManager = SessionManager(this)
         
         createNotificationChannels()
+        initializeCrashReporting()
     }
 
     private fun createNotificationChannels() {
@@ -38,15 +39,7 @@ class SilentGuardianApplication : Application() {
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Location tracking notifications"
-            }
-            
-            // Beacon channel
-            val beaconChannel = NotificationChannel(
-                "beacon_channel",
-                "Beacon Detection",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Beacon detection notifications"
+                setSound(null, null)
             }
             
             // Command channel
@@ -59,9 +52,49 @@ class SilentGuardianApplication : Application() {
                 setSound(null, null)
             }
             
+            // Beacon channel
+            val beaconChannel = NotificationChannel(
+                "beacon_channel",
+                "Beacon Detection",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Beacon detection notifications"
+                setSound(null, null)
+            }
+            
+            // Alert channel
+            val alertChannel = NotificationChannel(
+                "alert_channel",
+                "Alerts",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Alert notifications"
+                enableVibration(true)
+            }
+            
             notificationManager.createNotificationChannel(locationChannel)
-            notificationManager.createNotificationChannel(beaconChannel)
             notificationManager.createNotificationChannel(commandChannel)
+            notificationManager.createNotificationChannel(beaconChannel)
+            notificationManager.createNotificationChannel(alertChannel)
+        }
+    }
+
+    private fun initializeCrashReporting() {
+        // Set up uncaught exception handler for crash reporting
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            // Log crash and send to server
+            val crashReport = mapOf(
+                "message" to throwable.message,
+                "stackTrace" to throwable.stackTraceToString(),
+                "thread" to thread.name,
+                "timestamp" to System.currentTimeMillis()
+            )
+            // Send to server asynchronously
+            // (Implementation would go here)
+            
+            // Let the system handle the crash
+            android.os.Process.killProcess(android.os.Process.myPid())
+            System.exit(1)
         }
     }
 }

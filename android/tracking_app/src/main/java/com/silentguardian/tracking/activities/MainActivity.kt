@@ -20,13 +20,15 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.silentguardian.tracking.DeviceAdminReceiver
 import com.silentguardian.tracking.R
-import com.silentguardian.tracking.services.AutoAuthService
-import com.silentguardian.tracking.services.BeaconService
-import com.silentguardian.tracking.services.CommandExecutorService
-import com.silentguardian.tracking.services.LocationTrackingService
+import com.silentguardian.tracking.services.*
 import com.silentguardian.tracking.utils.HardwareIdManager
 import com.silentguardian.tracking.utils.SessionManager
+import kotlinx.coroutines.*
 
+/**
+ * Main Activity - Dashboard for device tracking management
+ * Handles permissions, services, and device admin
+ */
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_IGNORE_BATTERY_OPTIMIZATIONS = 1004
         private const val REQUEST_OVERLAY_PERMISSION = 1005
         private const val REQUEST_ADMIN_PERMISSION = 1006
+        private const val REQUEST_WRITE_SETTINGS = 1007
     }
 
     private lateinit var sessionManager: SessionManager
@@ -49,6 +52,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnSettings: Button
     private lateinit var btnDeviceAdmin: Button
     private lateinit var btnViewDashboard: Button
+    
+    private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         setupClickListeners()
         checkPermissionsAndServices()
         displayDeviceInfo()
+        startBackgroundServicesIfNeeded()
     }
 
     private fun initViews() {
@@ -105,18 +111,22 @@ class MainActivity : AppCompatActivity() {
         val allPermissionsGranted = checkAllPermissions()
         val isAdminActive = checkDeviceAdminActive()
 
-        if (allPermissionsGranted && isAdminActive) {
-            tvStatus.text = "Status: ✅ All ready"
-            tvStatus.setTextColor(getColor(android.R.color.holo_green_dark))
-            btnStartServices.isEnabled = true
-        } else if (allPermissionsGranted) {
-            tvStatus.text = "Status: ⚠️ Device Admin required"
-            tvStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
-            btnStartServices.isEnabled = false
-        } else {
-            tvStatus.text = "Status: ❌ Permissions missing"
-            tvStatus.setTextColor(getColor(android.R.color.holo_red_dark))
-            btnStartServices.isEnabled = false
+        when {
+            allPermissionsGranted && isAdminActive -> {
+                tvStatus.text = "Status: ✅ All ready - Tracking active"
+                tvStatus.setTextColor(getColor(android.R.color.holo_green_dark))
+                btnStartServices.isEnabled = true
+            }
+            allPermissionsGranted -> {
+                tvStatus.text = "Status: ⚠️ Device Admin required for remote lock"
+                tvStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
+                btnStartServices.isEnabled = false
+            }
+            else -> {
+                tvStatus.text = "Status: ❌ Permissions missing - Click 'Grant Permissions'"
+                tvStatus.setTextColor(getColor(android.R.color.holo_red_dark))
+                btnStartServices.isEnabled = false
+            }
         }
     }
 
@@ -140,7 +150,9 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.INTERNET,
                 Manifest.permission.ACCESS_NETWORK_STATE,
                 Manifest.permission.WAKE_LOCK,
-                Manifest.permission.VIBRATE
+                Manifest.permission.VIBRATE,
+                Manifest.permission.FOREGROUND_SERVICE,
+                Manifest.permission.POST_NOTIFICATIONS
             )
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             arrayOf(
@@ -154,7 +166,8 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.INTERNET,
                 Manifest.permission.ACCESS_NETWORK_STATE,
                 Manifest.permission.WAKE_LOCK,
-                Manifest.permission.VIBRATE
+                Manifest.permission.VIBRATE,
+                Manifest.permission.FOREGROUND_SERVICE
             )
         } else {
             arrayOf(
@@ -185,6 +198,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestSpecialPermissions() {
+        // Request Ignore Battery Optimizations
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                 data = Uri.parse("package:$packageName")
@@ -192,20 +206,27 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!Settings.canDrawOverlays(this)) {
-                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
-                    data = Uri.parse("package:$packageName")
-                }
-                startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION)
+        // Request Overlay Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                data = Uri.parse("package:$packageName")
             }
+            startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION)
+        }
+        
+        // Request Write Settings (for enabling/disabling mobile data)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.System.canWrite(this)) {
+            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
+                data = Uri.parse("package:$packageName")
+            }
+            startActivityForResult(intent, REQUEST_WRITE_SETTINGS)
         }
     }
 
     private fun requestDeviceAdmin() {
         val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
             putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, ComponentName(this@MainActivity, DeviceAdminReceiver::class.java))
-            putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Required for remote lock and anti-theft features")
+            putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Required for remote lock, prevent uninstall, and anti-theft features")
         }
         startActivityForResult(intent, REQUEST_ADMIN_PERMISSION)
     }
@@ -216,6 +237,7 @@ class MainActivity : AppCompatActivity() {
         return dpm.isAdminActive(adminComponent)
     }
 
+    @SuppressLint("HardwareIds")
     private fun displayDeviceInfo() {
         val hardwareId = hardwareIdManager.getPersistentDeviceId()
         tvHardwareId.text = "Hardware ID: ${hardwareId.take(16)}..."
@@ -230,23 +252,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun startAllServices() {
         if (!checkAllPermissions()) {
-            Toast.makeText(this, "Grant all permissions first", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Please grant all permissions first", Toast.LENGTH_LONG).show()
             return
         }
 
         if (!checkDeviceAdminActive()) {
-            Toast.makeText(this, "Activate Device Admin first", Toast.LENGTH_LONG).show()
-            return
+            Toast.makeText(this, "Please activate Device Admin for full functionality", Toast.LENGTH_LONG).show()
         }
 
+        // Start all tracking services
         startService(Intent(this, AutoAuthService::class.java))
         startService(Intent(this, LocationTrackingService::class.java))
         startService(Intent(this, CommandExecutorService::class.java))
         startService(Intent(this, BeaconService::class.java))
 
         Toast.makeText(this, "All tracking services started", Toast.LENGTH_SHORT).show()
-        tvStatus.text = "Status: ✅ Services running"
+        tvStatus.text = "Status: ✅ All services running"
         tvStatus.setTextColor(getColor(android.R.color.holo_green_dark))
+        
+        // Save to preferences
+        getSharedPreferences("device_prefs", MODE_PRIVATE).edit().apply {
+            putBoolean("services_running", true)
+            apply()
+        }
     }
 
     private fun stopAllServices() {
@@ -258,6 +286,20 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, "All tracking services stopped", Toast.LENGTH_SHORT).show()
         tvStatus.text = "Status: ⚠️ Services stopped"
         tvStatus.setTextColor(getColor(android.R.color.holo_orange_dark))
+        
+        getSharedPreferences("device_prefs", MODE_PRIVATE).edit().apply {
+            putBoolean("services_running", false)
+            apply()
+        }
+    }
+    
+    private fun startBackgroundServicesIfNeeded() {
+        val prefs = getSharedPreferences("device_prefs", MODE_PRIVATE)
+        val servicesRunning = prefs.getBoolean("services_running", false)
+        
+        if (servicesRunning && checkAllPermissions()) {
+            startAllServices()
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -271,9 +313,12 @@ class MainActivity : AppCompatActivity() {
         
         if (allGranted) {
             requestSpecialPermissions()
-            Toast.makeText(this, "Permissions granted", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "All permissions granted!", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, "Some permissions denied", Toast.LENGTH_LONG).show()
+            val deniedPermissions = permissions.filterIndexed { index, _ ->
+                grantResults[index] != PackageManager.PERMISSION_GRANTED
+            }
+            Toast.makeText(this, "Some permissions denied: ${deniedPermissions.joinToString()}", Toast.LENGTH_LONG).show()
         }
         
         checkPermissionsAndServices()
@@ -285,9 +330,24 @@ class MainActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_ADMIN_PERMISSION -> {
                 if (checkDeviceAdminActive()) {
-                    Toast.makeText(this, "Device Admin activated", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Device Admin activated!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Device Admin activation required for full functionality", Toast.LENGTH_LONG).show()
                 }
                 checkPermissionsAndServices()
+            }
+            REQUEST_IGNORE_BATTERY_OPTIMIZATIONS -> {
+                Toast.makeText(this, "Battery optimization setting updated", Toast.LENGTH_SHORT).show()
+            }
+            REQUEST_OVERLAY_PERMISSION -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.canDrawOverlays(this)) {
+                    Toast.makeText(this, "Overlay permission granted", Toast.LENGTH_SHORT).show()
+                }
+            }
+            REQUEST_WRITE_SETTINGS -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Settings.System.canWrite(this)) {
+                    Toast.makeText(this, "Write settings permission granted", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -300,6 +360,12 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
+        // Move to background instead of closing
         moveTaskToBack(true)
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        mainScope.cancel()
     }
 }

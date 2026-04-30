@@ -11,11 +11,15 @@ import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
 
+/**
+ * Register Activity - Registers a new device with the tracking system
+ */
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var etDeviceName: EditText
     private lateinit var etEmail: EditText
     private lateinit var etPassword: EditText
+    private lateinit var etConfirmPassword: EditText
     private lateinit var btnRegister: Button
     private lateinit var hardwareIdManager: HardwareIdManager
     private val client = OkHttpClient()
@@ -34,6 +38,7 @@ class RegisterActivity : AppCompatActivity() {
         etDeviceName = findViewById(R.id.etDeviceName)
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etPassword)
+        etConfirmPassword = findViewById(R.id.etConfirmPassword)
         btnRegister = findViewById(R.id.btnRegister)
     }
 
@@ -47,10 +52,21 @@ class RegisterActivity : AppCompatActivity() {
         val deviceName = etDeviceName.text.toString().trim()
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString().trim()
+        val confirmPassword = etConfirmPassword.text.toString().trim()
         val hardwareId = hardwareIdManager.getPersistentDeviceId()
 
         if (deviceName.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Fill all fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (password != confirmPassword) {
+            Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (password.length < 6) {
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -62,6 +78,7 @@ class RegisterActivity : AppCompatActivity() {
             put("manufacturer", android.os.Build.MANUFACTURER)
             put("model", android.os.Build.MODEL)
             put("androidVersion", android.os.Build.VERSION.RELEASE)
+            put("sdkVersion", android.os.Build.VERSION.SDK_INT)
         }
 
         val request = Request.Builder()
@@ -69,22 +86,31 @@ class RegisterActivity : AppCompatActivity() {
             .post(RequestBody.create(MediaType.parse("application/json"), json.toString()))
             .build()
 
+        Toast.makeText(this, "Registering device...", Toast.LENGTH_SHORT).show()
+
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@RegisterActivity, "Registration failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RegisterActivity, "Registration failed: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
+                val responseBody = response.body?.string()
+                
                 if (response.isSuccessful) {
                     runOnUiThread {
-                        Toast.makeText(this@RegisterActivity, "Device registered! Please login.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@RegisterActivity, "Device registered successfully! Please login.", Toast.LENGTH_LONG).show()
                         finish()
                     }
                 } else {
                     runOnUiThread {
-                        Toast.makeText(this@RegisterActivity, "Registration failed", Toast.LENGTH_SHORT).show()
+                        val errorMsg = try {
+                            JSONObject(responseBody).getString("message")
+                        } catch (e: Exception) {
+                            "Registration failed"
+                        }
+                        Toast.makeText(this@RegisterActivity, errorMsg, Toast.LENGTH_LONG).show()
                     }
                 }
                 response.close()

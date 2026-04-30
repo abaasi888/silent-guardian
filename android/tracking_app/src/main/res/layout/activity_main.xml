@@ -20,6 +20,7 @@
             android:gravity="center"
             android:layout_marginBottom="20dp" />
 
+        <!-- Status Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -69,6 +70,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Permissions Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -110,6 +112,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Services Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -126,7 +129,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Services"
+                    android:text="Tracking Services"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
@@ -152,6 +155,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Dashboard Card -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

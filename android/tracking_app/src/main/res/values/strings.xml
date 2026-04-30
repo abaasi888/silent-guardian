@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Silent Guardian</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="logout">Logout</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="settings">Settings</string>
+    <string name="tracking">Tracking</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="permission_required">Permission Required</string>
+    <string name="location_permission">Location permission is required for tracking</string>
+    <string name="sms_permission">SMS permission is required for remote commands</string>
+    <string name="bluetooth_permission">Bluetooth permission is required for beacon detection</string>
 </resources>
