@@ -18,7 +18,61 @@ const DeviceManagement = () => {
   }, [])
 
   const loadDevices = () => {
-    const allDevices = JSON.parse(localStorage.getItem('sg_devices') || '[]')
+    // Get existing devices from localStorage
+    let allDevices = JSON.parse(localStorage.getItem('sg_devices') || '[]')
+    
+    // If no devices exist, create mock devices
+    if (allDevices.length === 0) {
+      const mockDevices = [
+        {
+          id: 'dev1',
+          name: 'John\'s iPhone',
+          deviceId: 'iphone_abc123',
+          hardwareId: 'HW_ABC123DEF',
+          status: 'active',
+          battery: 87,
+          lastSeen: new Date().toISOString(),
+          lastLocation: { lat: 40.7128, lng: -74.0060 },
+          owner: 'john@example.com'
+        },
+        {
+          id: 'dev2',
+          name: 'Sarah\'s Samsung',
+          deviceId: 'samsung_xyz789',
+          hardwareId: 'HW_XYZ789GHI',
+          status: 'active',
+          battery: 65,
+          lastSeen: new Date().toISOString(),
+          lastLocation: { lat: 40.7580, lng: -73.9855 },
+          owner: 'sarah@example.com'
+        },
+        {
+          id: 'dev3',
+          name: 'Mike\'s Pixel',
+          deviceId: 'pixel_456def',
+          hardwareId: 'HW_456DEFJKL',
+          status: 'inactive',
+          battery: 23,
+          lastSeen: new Date(Date.now() - 86400000).toISOString(),
+          lastLocation: null,
+          owner: 'mike@example.com'
+        },
+        {
+          id: 'dev4',
+          name: 'Company Tablet',
+          deviceId: 'tablet_001',
+          hardwareId: 'HW_TAB001MNO',
+          status: 'stolen',
+          battery: 45,
+          lastSeen: new Date(Date.now() - 172800000).toISOString(),
+          lastLocation: { lat: 40.7300, lng: -73.9950 },
+          owner: 'company@example.com'
+        }
+      ]
+      localStorage.setItem('sg_devices', JSON.stringify(mockDevices))
+      allDevices = mockDevices
+    }
+    
     setDevices(allDevices)
     setFilteredDevices(allDevices)
     setLoading(false)
@@ -29,7 +83,8 @@ const DeviceManagement = () => {
     setSearchTerm(term)
     const filtered = devices.filter(device => 
       device.name?.toLowerCase().includes(term) ||
-      device.deviceId?.toLowerCase().includes(term)
+      device.deviceId?.toLowerCase().includes(term) ||
+      device.owner?.toLowerCase().includes(term)
     )
     setFilteredDevices(filtered)
   }
@@ -64,7 +119,6 @@ const DeviceManagement = () => {
   }
 
   const refreshLocation = () => {
-    // Simulate getting new location
     const newLocation = {
       lat: 40.7128 + (Math.random() - 0.5) * 0.05,
       lng: -74.0060 + (Math.random() - 0.5) * 0.05,
@@ -72,7 +126,6 @@ const DeviceManagement = () => {
     }
     setTrackingLocation(newLocation)
     
-    // Update device location
     const allDevices = JSON.parse(localStorage.getItem('sg_devices') || '[]')
     const updatedDevices = allDevices.map(device => 
       device.id === selectedDevice.id ? { 
@@ -83,7 +136,6 @@ const DeviceManagement = () => {
     )
     localStorage.setItem('sg_devices', JSON.stringify(updatedDevices))
     
-    // Add to location history
     const history = JSON.parse(localStorage.getItem(`location_history_${selectedDevice.deviceId}`) || '[]')
     history.push(newLocation)
     localStorage.setItem(`location_history_${selectedDevice.deviceId}`, JSON.stringify(history.slice(-50)))
@@ -94,7 +146,6 @@ const DeviceManagement = () => {
 
   const sendRecoveryCommand = () => {
     alert(`🚨 Emergency recovery command sent to ${selectedDevice.name}!\n\nThe device will respond with its location when it comes online.`)
-    // Store command in pending commands
     const pendingCommands = JSON.parse(localStorage.getItem('pending_commands') || '[]')
     pendingCommands.push({
       deviceId: selectedDevice.deviceId,
@@ -131,7 +182,7 @@ const DeviceManagement = () => {
       <div className="admin-search">
         <input
           type="text"
-          placeholder="Search by device name or ID..."
+          placeholder="Search by device name, ID or owner..."
           value={searchTerm}
           onChange={handleSearch}
           className="search-input"
@@ -144,7 +195,7 @@ const DeviceManagement = () => {
             <tr>
               <th>Device Name</th>
               <th>Device ID</th>
-              <th>Hardware ID</th>
+              <th>Owner</th>
               <th>Status</th>
               <th>Battery</th>
               <th>Last Seen</th>
@@ -161,7 +212,7 @@ const DeviceManagement = () => {
                 <tr key={device.id}>
                   <td>{device.name}</td>
                   <td>{device.deviceId}</td>
-                  <td>{device.hardwareId?.substring(0, 8)}...</td>
+                  <td>{device.owner || 'Unknown'}</td>
                   <td>
                     <select 
                       value={device.status} 
@@ -178,8 +229,8 @@ const DeviceManagement = () => {
                   <td className="action-cell">
                     <button className="track-btn" onClick={() => trackDevice(device)}>📍 Track</button>
                     <button className="delete-btn" onClick={() => deleteDevice(device.id)}>Delete</button>
-                   </td>
-                 </tr>
+                  </td>
+                </tr>
               ))
             )}
           </tbody>
@@ -198,31 +249,27 @@ const DeviceManagement = () => {
               <div className="tracking-info">
                 <div className="device-details">
                   <p><strong>Device ID:</strong> {selectedDevice.deviceId}</p>
+                  <p><strong>Owner:</strong> {selectedDevice.owner || 'Unknown'}</p>
                   <p><strong>Status:</strong> <span className={`status-badge ${selectedDevice.status}`}>{selectedDevice.status}</span></p>
                   <p><strong>Last Seen:</strong> {selectedDevice.lastSeen ? new Date(selectedDevice.lastSeen).toLocaleString() : 'Never'}</p>
                   <p><strong>Battery:</strong> {selectedDevice.battery || 'N/A'}%</p>
-                  <p><strong>Firmware:</strong> {selectedDevice.firmware || 'v1.0.0'}</p>
                 </div>
                 
                 <div className="location-map">
                   <h3>Current Location</h3>
                   <div className="map-placeholder">
                     <div className="map-coordinates">
-                      <p>📍 <strong>Latitude:</strong> {trackingLocation?.lat}</p>
-                      <p>📍 <strong>Longitude:</strong> {trackingLocation?.lng}</p>
-                      <p>🕐 <strong>Updated:</strong> {new Date().toLocaleTimeString()}</p>
+                      <p>📍 Latitude: <strong>{trackingLocation?.lat}</strong></p>
+                      <p>📍 Longitude: <strong>{trackingLocation?.lng}</strong></p>
                     </div>
                     <div className="map-mock">
-                      <div className="mock-map">
-                        <div className="map-grid"></div>
-                        <div className="location-marker" style={{ left: '50%', top: '50%' }}>📍</div>
-                      </div>
+                      🗺️ Live Map View
+                      <div className="location-marker">📍</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Location History */}
               {locationHistory.length > 0 && (
                 <div className="location-history">
                   <h3>Recent Location History</h3>

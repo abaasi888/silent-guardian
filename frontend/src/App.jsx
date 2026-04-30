@@ -25,6 +25,13 @@ import Reports from './admin/pages/Reports'
 import ProfileAdmin from './admin/pages/Profile'
 import Settings from './admin/pages/Settings'
 import LiveChatAdmin from './admin/components/LiveChat'
+import RevenueReports from './admin/pages/RevenueReports'
+import SupportTickets from './admin/pages/SupportTickets'
+import Backup from './admin/pages/Backup'
+import EmployeeChat from './admin/components/EmployeeChat'
+import InviteEmployee from './admin/pages/InviteEmployee'
+import InviteUser from './admin/pages/InviteUser'
+import AdminCommission from './admin/pages/AdminCommission'
 
 // Component to handle role-based redirect
 const RoleBasedRedirect = () => {
@@ -47,9 +54,6 @@ const RoleBasedRedirect = () => {
 }
 
 function App() {
-  const authenticated = isAuthenticated()
-  const adminToken = localStorage.getItem('adminToken')
-
   return (
     <BrowserRouter>
       <Navbar />
@@ -111,8 +115,15 @@ function App() {
             <Route path="users" element={<UserManagement />} />
             <Route path="devices" element={<DeviceManagementAdmin />} />
             <Route path="employees" element={<EmployeeManagement />} />
+            <Route path="invite-employee" element={<InviteEmployee />} />
+            <Route path="employee-chat" element={<EmployeeChat />} />
+            <Route path="invite-user" element={<InviteUser />} />
+            <Route path="commission" element={<AdminCommission />} />
+            <Route path="revenue" element={<RevenueReports />} />
+            <Route path="tickets" element={<SupportTickets />} />
             <Route path="audit" element={<AuditLogs />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="backup" element={<Backup />} />
             <Route path="profile" element={<ProfileAdmin />} />
             <Route path="settings" element={<Settings />} />
             <Route path="chat" element={<LiveChatAdmin />} />
