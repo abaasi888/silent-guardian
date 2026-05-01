@@ -1,22 +1,24 @@
-from fastapi import APIRouter, HTTPException, Depends, Request
-from datetime import datetime, timedelta, timezone
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
+from datetime import datetime, timezone, timedelta
 from typing import Optional
+from pydantic import BaseModel, Field
+from bson import ObjectId
 import uuid
 import hashlib
 import hmac
+import qrcode
+import io
+import base64
 import requests
-import stripe
 from app.database import get_db
 from app.auth import get_current_user, get_current_admin
 from app.config import settings
-from bson import ObjectId
+from app.services.email_service import send_email
+from app.services.sms_service import send_sms
 
 router = APIRouter()
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
-# ========== Request/Response Models ==========
+# ========== Models ==========
 class CryptoPaymentRequest(BaseModel):
     deviceId: str
     plan: str  # basic, premium
@@ -31,17 +33,93 @@ class MobileMoneyPaymentRequest(BaseModel):
 class CardPaymentRequest(BaseModel):
     deviceId: str
     plan: str
-    cardNumber: str
-    expiryMonth: int
-    expiryYear: int
-    cvc: str
+    paymentMethodId: str
 
 class PaymentResponse(BaseModel):
     success: bool
     transactionId: str
     paymentUrl: Optional[str] = None
     walletAddress: Optional[str] = None
+    qrCode: Optional[str] = None
     message: str
+
+# ========== Plan Configuration ==========
+PLANS = {
+    "basic": {"name": "Basic", "amount": 4.99, "amountUSDT": 4.99},
+    "premium": {"name": "Premium", "amount": 9.99, "amountUSDT": 9.99}
+}
+
+# Crypto wallets
+CRYPTO_WALLETS = {
+    "TRC20": settings.CRYPTO_WALLET_TRC20,
+    "ERC20": settings.CRYPTO_WALLET_ERC20,
+    "BEP20": settings.CRYPTO_WALLET_BEP20
+}
+
+# ========== Helper Functions ==========
+async def create_transaction(user_id: str, device_id: str, amount: float, payment_method: str, metadata: dict = None):
+    db = get_db()
+    transaction_id = f"TXN_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8].upper()}"
+    
+    transaction = {
+        "transactionId": transaction_id,
+        "userId": ObjectId(user_id),
+        "deviceId": ObjectId(device_id),
+        "amount": amount,
+        "currency": "USD",
+        "paymentMethod": payment_method,
+        "status": "pending",
+        "type": "subscription",
+        "metadata": metadata or {},
+        "createdAt": datetime.now(timezone.utc)
+    }
+    
+    await db.transactions.insert_one(transaction)
+    return transaction_id
+
+async def activate_subscription(device_id: str, user_id: str, plan: str, amount: float, payment_method: str, transaction_id: str):
+    db = get_db()
+    
+    # Deactivate old subscriptions
+    await db.subscriptions.update_many(
+        {"deviceId": ObjectId(device_id), "status": "active"},
+        {"$set": {"status": "expired"}}
+    )
+    
+    expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
+    
+    subscription = {
+        "deviceId": ObjectId(device_id),
+        "userId": ObjectId(user_id),
+        "plan": plan,
+        "amount": amount,
+        "status": "active",
+        "paymentMethod": payment_method,
+        "type": "new",
+        "startDate": datetime.now(timezone.utc),
+        "endDate": expiry_date,
+        "lastPaymentDate": datetime.now(timezone.utc),
+        "autoRenew": True,
+        "transactionId": transaction_id,
+        "createdAt": datetime.now(timezone.utc)
+    }
+    
+    await db.subscriptions.insert_one(subscription)
+    
+    # Update device
+    await db.devices.update_one(
+        {"_id": ObjectId(device_id)},
+        {"$set": {
+            "status": "active",
+            "subscription": {
+                "plan": plan,
+                "active": True,
+                "expiresAt": expiry_date
+            }
+        }}
+    )
+    
+    return subscription
 
 # ========== Crypto Payment (USDT) ==========
 @router.post("/crypto/initiate")
@@ -52,53 +130,53 @@ async def initiate_crypto_payment(
     db = get_db()
     
     # Get device
-    device = await db.devices.find_one({"deviceId": payment.deviceId, "owner": ObjectId(current_user["id"])})
+    device = await db.devices.find_one({"deviceId": payment.deviceId})
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     
-    # Calculate amount based on plan
-    plan_amounts = {"basic": 4.99, "premium": 9.99}
-    amount = plan_amounts.get(payment.plan, 4.99)
+    if str(device.get("owner")) != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
     
-    # Select wallet based on network
-    wallet_addresses = {
-        "TRC20": settings.CRYPTO_WALLET_TRC20,
-        "ERC20": settings.CRYPTO_WALLET_ERC20,
-        "BEP20": settings.CRYPTO_WALLET_BEP20
-    }
-    wallet_address = wallet_addresses.get(payment.network, settings.CRYPTO_WALLET_TRC20)
+    plan = PLANS.get(payment.plan)
+    if not plan:
+        raise HTTPException(status_code=400, detail="Invalid plan")
     
-    # Create transaction record
-    transaction_id = f"CRYPTO_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    amount = plan["amountUSDT"]
+    wallet_address = CRYPTO_WALLETS.get(payment.network)
+    if not wallet_address:
+        raise HTTPException(status_code=400, detail="Invalid network")
     
-    transaction = {
-        "transactionId": transaction_id,
-        "userId": ObjectId(current_user["id"]),
-        "deviceId": device["_id"],
-        "amount": amount,
-        "currency": "USDT",
-        "paymentMethod": f"crypto_{payment.network}",
-        "status": "pending",
-        "type": "subscription",
-        "metadata": {
+    # Create transaction
+    transaction_id = await create_transaction(
+        user_id=current_user["id"],
+        device_id=str(device["_id"]),
+        amount=amount,
+        payment_method=f"crypto_{payment.network}",
+        metadata={
             "network": payment.network,
             "walletAddress": wallet_address,
             "plan": payment.plan
-        },
-        "createdAt": datetime.now(timezone.utc)
-    }
+        }
+    )
     
-    await db.transactions.insert_one(transaction)
+    # Generate QR Code
+    qr_data = f"usdt:{wallet_address}?amount={amount}&network={payment.network}"
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="black", back_color="white")
     
-    # Generate QR code for payment
-    qr_data = f"{settings.QR_CODE_BASE_URL}?address={wallet_address}&amount={amount}&currency=USDT&network={payment.network}"
+    # Convert QR to base64
+    buffered = io.BytesIO()
+    qr_img.save(buffered, format="PNG")
+    qr_base64 = base64.b64encode(buffered.getvalue()).decode()
     
     return PaymentResponse(
         success=True,
         transactionId=transaction_id,
         walletAddress=wallet_address,
-        paymentUrl=qr_data,
-        message=f"Please send {amount} USDT to the wallet address using {payment.network} network"
+        qrCode=qr_base64,
+        message=f"Please send {amount} USDT to the address above using {payment.network} network"
     )
 
 @router.post("/crypto/confirm")
@@ -116,64 +194,49 @@ async def confirm_crypto_payment(
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
-    if transaction["status"] != "pending":
+    if transaction["status"] == "completed":
         return {"success": True, "message": "Payment already confirmed"}
     
-    # In production, verify on blockchain
-    # For demo, auto-confirm after 5 minutes simulation
-    
-    # Update transaction
+    # In production, verify on blockchain here
+    # For demo, auto-confirm
     await db.transactions.update_one(
         {"_id": transaction["_id"]},
         {"$set": {"status": "completed", "completedAt": datetime.now(timezone.utc)}}
     )
     
     # Activate subscription
-    device_id = transaction["deviceId"]
+    device_id = str(transaction["deviceId"])
     plan = transaction["metadata"]["plan"]
     amount = transaction["amount"]
     
-    # Calculate expiry date (30 days from now)
-    expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
+    await activate_subscription(
+        device_id=device_id,
+        user_id=current_user["id"],
+        plan=plan,
+        amount=amount,
+        payment_method=transaction["paymentMethod"],
+        transaction_id=transaction_id
+    )
     
-    # Create subscription
-    subscription = {
-        "deviceId": device_id,
-        "userId": transaction["userId"],
-        "plan": plan,
-        "amount": amount,
-        "status": "active",
-        "paymentMethod": transaction["paymentMethod"],
-        "type": "new",
-        "startDate": datetime.now(timezone.utc),
-        "endDate": expiry_date,
-        "lastPaymentDate": datetime.now(timezone.utc),
-        "autoRenew": True,
-        "createdAt": datetime.now(timezone.utc)
-    }
+    # Send confirmation email
+    user = await db.users.find_one({"_id": ObjectId(current_user["id"])})
+    device = await db.devices.find_one({"_id": ObjectId(device_id)})
     
-    await db.subscriptions.insert_one(subscription)
-    
-    # Update device
-    await db.devices.update_one(
-        {"_id": device_id},
-        {"$set": {
-            "status": "active",
-            "subscription": {
-                "plan": plan,
-                "active": True,
-                "expiresAt": expiry_date
-            }
-        }}
+    await send_email(
+        user["email"],
+        "Silent Guardian Subscription Activated",
+        f"Dear {user['fullName']},\n\nYour {plan.upper()} subscription for device {device['deviceName']} has been activated.\n\nThank you for choosing Silent Guardian!"
     )
     
     return {
         "success": True,
         "message": "Payment confirmed! Your subscription is now active.",
-        "expiresAt": expiry_date.isoformat()
+        "deviceName": device["deviceName"],
+        "plan": plan,
+        "expiresAt": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
     }
 
-# ========== Mobile Money Payments ==========
+# ========== Mobile Money Payment ==========
 @router.post("/mobile/initiate")
 async def initiate_mobile_payment(
     payment: MobileMoneyPaymentRequest,
@@ -181,37 +244,44 @@ async def initiate_mobile_payment(
 ):
     db = get_db()
     
-    device = await db.devices.find_one({"deviceId": payment.deviceId, "owner": ObjectId(current_user["id"])})
+    device = await db.devices.find_one({"deviceId": payment.deviceId})
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     
-    plan_amounts = {"basic": 4.99, "premium": 9.99}
-    amount = plan_amounts.get(payment.plan, 4.99)
+    if str(device.get("owner")) != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
     
-    transaction_id = f"MOBILE_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    plan = PLANS.get(payment.plan)
+    if not plan:
+        raise HTTPException(status_code=400, detail="Invalid plan")
     
-    transaction = {
-        "transactionId": transaction_id,
-        "userId": ObjectId(current_user["id"]),
-        "deviceId": device["_id"],
-        "amount": amount,
-        "currency": "UGX" if payment.provider in ["mtn", "airtel"] else "USD",
-        "paymentMethod": f"mobile_{payment.provider}",
-        "status": "pending",
-        "type": "subscription",
-        "metadata": {
+    amount = plan["amount"]
+    
+    # Create transaction
+    transaction_id = await create_transaction(
+        user_id=current_user["id"],
+        device_id=str(device["_id"]),
+        amount=amount,
+        payment_method=f"mobile_{payment.provider}",
+        metadata={
             "provider": payment.provider,
             "phoneNumber": payment.phoneNumber,
             "plan": payment.plan
-        },
-        "createdAt": datetime.now(timezone.utc)
-    }
+        }
+    )
     
-    await db.transactions.insert_one(transaction)
+    # In production, call mobile money API here
+    # For demo, simulate
+    await db.transactions.update_one(
+        {"transactionId": transaction_id},
+        {"$set": {"status": "pending_verification"}}
+    )
     
-    # Simulate payment request to mobile money API
-    # In production, integrate with MTN/Airtel API
-    # For demo, just return success
+    # Send payment request via SMS
+    await send_sms(
+        payment.phoneNumber,
+        f"Payment request: Please approve ${amount} for Silent Guardian subscription. Reference: {transaction_id}"
+    )
     
     return PaymentResponse(
         success=True,
@@ -234,7 +304,7 @@ async def confirm_mobile_payment(
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
-    if transaction["status"] != "pending":
+    if transaction["status"] == "completed":
         return {"success": True, "message": "Payment already confirmed"}
     
     # In production, verify with mobile money API
@@ -243,97 +313,75 @@ async def confirm_mobile_payment(
         {"$set": {"status": "completed", "completedAt": datetime.now(timezone.utc)}}
     )
     
-    # Activate subscription
-    device_id = transaction["deviceId"]
+    device_id = str(transaction["deviceId"])
     plan = transaction["metadata"]["plan"]
     amount = transaction["amount"]
-    expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
     
-    subscription = {
-        "deviceId": device_id,
-        "userId": transaction["userId"],
-        "plan": plan,
-        "amount": amount,
-        "status": "active",
-        "paymentMethod": transaction["paymentMethod"],
-        "type": "new",
-        "startDate": datetime.now(timezone.utc),
-        "endDate": expiry_date,
-        "lastPaymentDate": datetime.now(timezone.utc),
-        "autoRenew": True,
-        "createdAt": datetime.now(timezone.utc)
-    }
-    
-    await db.subscriptions.insert_one(subscription)
-    
-    await db.devices.update_one(
-        {"_id": device_id},
-        {"$set": {
-            "status": "active",
-            "subscription": {"plan": plan, "active": True, "expiresAt": expiry_date}
-        }}
+    await activate_subscription(
+        device_id=device_id,
+        user_id=current_user["id"],
+        plan=plan,
+        amount=amount,
+        payment_method=transaction["paymentMethod"],
+        transaction_id=transaction_id
     )
     
     return {
         "success": True,
         "message": "Payment confirmed! Your subscription is now active.",
-        "expiresAt": expiry_date.isoformat()
+        "expiresAt": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
     }
 
-# ========== Card Payments (Stripe) ==========
-@router.post("/card/create-payment-intent")
+# ========== Card Payment (Stripe) ==========
+@router.post("/card/create-intent")
 async def create_card_payment_intent(
     payment: CardPaymentRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    db = get_db()
+    import stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
     
-    device = await db.devices.find_one({"deviceId": payment.deviceId, "owner": ObjectId(current_user["id"])})
+    device = await db.devices.find_one({"deviceId": payment.deviceId})
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     
-    plan_amounts = {"basic": 499, "premium": 999}  # in cents
-    amount = plan_amounts.get(payment.plan, 499)
+    if str(device.get("owner")) != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    plan = PLANS.get(payment.plan)
+    if not plan:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    
+    amount = int(plan["amount"] * 100)  # Convert to cents
     
     try:
-        # Create Stripe Payment Intent
         intent = stripe.PaymentIntent.create(
             amount=amount,
             currency="usd",
             metadata={
                 "deviceId": payment.deviceId,
-                "userId": str(current_user["id"]),
+                "userId": current_user["id"],
                 "plan": payment.plan
             }
         )
         
-        # Store transaction
-        transaction_id = f"CARD_{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
-        
-        transaction = {
-            "transactionId": transaction_id,
-            "userId": ObjectId(current_user["id"]),
-            "deviceId": device["_id"],
-            "amount": amount / 100,
-            "currency": "USD",
-            "paymentMethod": "card",
-            "status": "pending",
-            "type": "subscription",
-            "metadata": {
-                "stripePaymentIntentId": intent.id,
+        # Create transaction record
+        transaction_id = await create_transaction(
+            user_id=current_user["id"],
+            device_id=str(device["_id"]),
+            amount=plan["amount"],
+            payment_method="card",
+            metadata={
+                "paymentIntentId": intent.id,
                 "plan": payment.plan
-            },
-            "createdAt": datetime.now(timezone.utc)
-        }
-        
-        await db.transactions.insert_one(transaction)
+            }
+        )
         
         return {
             "success": True,
             "clientSecret": intent.client_secret,
             "transactionId": transaction_id,
-            "amount": amount / 100,
-            "currency": "usd"
+            "amount": plan["amount"]
         }
         
     except stripe.error.StripeError as e:
@@ -341,20 +389,23 @@ async def create_card_payment_intent(
 
 @router.post("/card/confirm")
 async def confirm_card_payment(
-    request: Request,
+    payment_intent_id: str,
+    transaction_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    data = await request.json()
-    payment_intent_id = data.get("payment_intent_id")
-    transaction_id = data.get("transaction_id")
+    import stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
     
     db = get_db()
     
-    transaction = await db.transactions.find_one({"transactionId": transaction_id})
+    transaction = await db.transactions.find_one({
+        "transactionId": transaction_id,
+        "userId": ObjectId(current_user["id"])
+    })
+    
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
-    # Verify payment with Stripe
     try:
         intent = stripe.PaymentIntent.retrieve(payment_intent_id)
         if intent.status != "succeeded":
@@ -365,41 +416,22 @@ async def confirm_card_payment(
             {"$set": {"status": "completed", "completedAt": datetime.now(timezone.utc)}}
         )
         
-        # Activate subscription
-        device_id = transaction["deviceId"]
+        device_id = str(transaction["deviceId"])
         plan = transaction["metadata"]["plan"]
         amount = transaction["amount"]
-        expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
         
-        subscription = {
-            "deviceId": device_id,
-            "userId": transaction["userId"],
-            "plan": plan,
-            "amount": amount,
-            "status": "active",
-            "paymentMethod": "card",
-            "type": "new",
-            "startDate": datetime.now(timezone.utc),
-            "endDate": expiry_date,
-            "lastPaymentDate": datetime.now(timezone.utc),
-            "autoRenew": True,
-            "createdAt": datetime.now(timezone.utc)
-        }
-        
-        await db.subscriptions.insert_one(subscription)
-        
-        await db.devices.update_one(
-            {"_id": device_id},
-            {"$set": {
-                "status": "active",
-                "subscription": {"plan": plan, "active": True, "expiresAt": expiry_date}
-            }}
+        await activate_subscription(
+            device_id=device_id,
+            user_id=current_user["id"],
+            plan=plan,
+            amount=amount,
+            payment_method="card",
+            transaction_id=transaction_id
         )
         
         return {
             "success": True,
-            "message": "Payment confirmed! Your subscription is now active.",
-            "expiresAt": expiry_date.isoformat()
+            "message": "Payment confirmed! Your subscription is now active."
         }
         
     except stripe.error.StripeError as e:
@@ -408,6 +440,9 @@ async def confirm_card_payment(
 # ========== Stripe Webhook ==========
 @router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
+    import stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
     
@@ -423,6 +458,51 @@ async def stripe_webhook(request: Request):
     if event["type"] == "payment_intent.succeeded":
         payment_intent = event["data"]["object"]
         # Handle successful payment
-        # This will be processed by the confirm endpoint as well
-        
+        # Find transaction by paymentIntentId and confirm
+        pass
+    
     return {"received": True}
+
+# ========== Get Transaction History ==========
+@router.get("/history")
+async def get_transaction_history(
+    page: int = 1,
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user)
+):
+    db = get_db()
+    
+    skip = (page - 1) * limit
+    
+    transactions = await db.transactions.find({
+        "userId": ObjectId(current_user["id"])
+    }).sort("createdAt", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.transactions.count_documents({"userId": ObjectId(current_user["id"])})
+    
+    result = []
+    for txn in transactions:
+        device = None
+        if txn.get("deviceId"):
+            device_obj = await db.devices.find_one({"_id": txn["deviceId"]})
+            if device_obj:
+                device = device_obj["deviceName"]
+        
+        result.append({
+            "id": txn["transactionId"],
+            "amount": txn["amount"],
+            "currency": txn["currency"],
+            "paymentMethod": txn["paymentMethod"],
+            "status": txn["status"],
+            "type": txn["type"],
+            "deviceName": device,
+            "createdAt": txn["createdAt"].isoformat() if txn["createdAt"] else None
+        })
+    
+    return {
+        "transactions": result,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "pages": (total + limit - 1) // limit
+    }
