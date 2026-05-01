@@ -103,26 +103,3 @@ silent-guardian/
 │ └── Dockerfile.frontend
 │
 └── docs/ # Documentation
-
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+
-- MongoDB 7.0+
-- Redis 7.0+
-- Android Studio (for Android apps)
-
-### Backend Setup
-
-```bash
-cd backend-python
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env
-python main.py
