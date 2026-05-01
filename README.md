@@ -1,62 +1,128 @@
-# Silent Guardian – Ultimate Device Tracking & Protection Suite
+# 🛡️ Silent Guardian - Complete Security & Tracking Platform
 
-## Overview
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-green.svg)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18.2%2B-61dafb.svg)](https://reactjs.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-purple.svg)](https://kotlinlang.org)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.0%2B-darkgreen.svg)](https://mongodb.com)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Silent Guardian is an enterprise‑grade fleet tracking, workforce management, and corporate security platform. It provides:
+## 📱 A Complete End-to-End Security & Workforce Management Solution
 
-- **Real‑time device tracking** (Android client app) with background GPS, BLE beacon, and SMS trigger.
-- **Employee management** – fingerprint attendance, hourly location checks, referral marketing, and commission tracking.
-- **Admin portal** (web + Android app) – full control over users, devices, employees, geofences, reports, and live chat.
-- **Subscription system** with crypto payments (USDT – TRC20/BEP20) and device tiers (CHEAP / EXPENSIVE).
-- **Corporate features** – multi‑tenant organizations, geofencing, audit logs, webhooks, automated reports.
+Silent Guardian is a **production-ready platform** that combines device tracking, employee monitoring, and administrative controls into a single integrated system. Built for enterprises, security companies, and organizations needing real-time visibility over their assets and workforce.
 
-The system uses **Kotlin + Spring Boot WebFlux** (reactive) backend, **MongoDB**, **Redis**, **JWT** authentication, and **WebSocket** for real‑time chat.
+---
 
-## Key Features
+## ✨ Features
 
-### For Device Owners (Client App)
-- One device per user (enforced by backend).
-- Background location reporting (interval based on subscription plan).
-- BLE beacon advertisement for proximity detection.
-- SMS trigger: send "SILENTGUARDIAN" to your device → immediate location response.
-- Crypto subscription payments (USDT).
+### 🔐 Authentication & Security
+- JWT-based authentication with refresh tokens
+- Role-based access control (Admin, User, Employee)
+- Password hashing with bcrypt
+- Session management with Redis
 
-### For Employees (Employee App)
-- Fingerprint attendance (CHECK_IN, CHECK_OUT, hourly FIELD_CHECK).
-- Hourly location capture while on duty.
-- Unique referral link generation.
-- Commission tracking (30% of referred user’s first subscription).
-- Automatic promotion to permanent employee after 1000 referrals (fixed salary + commission).
+### 📍 Real-time Tracking
+- Live GPS location tracking for devices and employees
+- Location history with 30-day retention
+- WebSocket for real-time updates
+- Background location tracking on Android
 
-### For Administrators (Web & Admin App)
-- Dashboard with key metrics and device activity charts.
-- User management (list, approve/reject KYC, delete).
-- Device management (list, mark as stolen).
-- Employee management (invite, track performance, deactivate app).
-- Geofence creation (circle/polygon) with enter/exit alerts.
-- Live chat with employees (WebSocket).
-- Audit logs and report generation.
-- Corporate features: organizations, device groups, webhooks.
+### 📱 Device Management
+- Remote lock, wipe, and locate commands
+- Device admin features for Android
+- SMS command receiver
+- Factory reset protection
+- IMEI blacklisting system
 
-## Technology Stack
+### 👔 Employee Management
+- Invite-only registration system
+- Commission tracking and analytics
+- Performance dashboard with charts
+- Signup tracking and referral monitoring
+- Real-time location sharing with admin
 
-| Layer | Technologies |
-|-------|--------------|
-| Backend | Kotlin 1.9.20, Spring Boot 3.2 (WebFlux), Spring Security, MongoDB Reactive, Redis Reactive, JWT, WebSocket |
-| Frontend (web) | React 18, Vite, React Router, Axios, Leaflet (maps) |
-| Android Client | Kotlin, Jetpack, Room, WorkManager, Google Play Services (Location, Integrity), BLE |
-| Android Employee | Kotlin, BiometricPrompt, Location Services, Retrofit, Firebase FCM |
-| Android Admin | Kotlin, MPAndroidChart, WebSocket, Retrofit |
-| Infrastructure | Docker, Terraform (AWS/GCP), Kubernetes, Prometheus, Grafana |
+### 👑 Admin Dashboard
+- Complete user management CRUD
+- Device monitoring and control
+- Employee invite generation
+- System analytics and reports
+- Audit logs for security tracking
 
-## Project Structure
-silent-guardian-ultimate/
-├── backend/ # Kotlin + Spring Boot (reactive)
-├── frontend/ # React + Vite (client + admin portals)
-├── android/ # Client tracking app
-├── android-employee/ # Employee app
-├── android-admin/ # Admin app
-├── infrastructure/ # Docker compose, Terraform, K8s
-├── docs/ # Full documentation (architecture, API, guides)
-├── .github/workflows/ # CI/CD pipelines
-└── PROJECT_REFERENCE.md # Complete technical reference
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| Backend | Python 3.11+, FastAPI | REST API & WebSocket server |
+| Database | MongoDB 7.0+ | Primary data store |
+| Cache | Redis 7.0+ | Session management & caching |
+| Frontend | React 18, Vite, Tailwind CSS | Admin dashboard |
+| Android | Kotlin, Jetpack, Room | Tracking & employee apps |
+| Real-time | WebSockets, Socket.IO | Live location updates |
+
+---
+
+## 📁 Project Structure
+silent-guardian/
+├── backend-python/ # FastAPI Backend
+│ ├── app/
+│ │ ├── routers/ # API endpoints
+│ │ ├── services/ # Business logic
+│ │ ├── models.py # Data models
+│ │ ├── database.py # DB connection
+│ │ ├── auth.py # Auth utilities
+│ │ ├── config.py # Configuration
+│ │ └── websocket.py # WebSocket handler
+│ ├── requirements.txt
+│ └── main.py
+│
+├── frontend/ # React Web Application
+│ ├── src/
+│ │ ├── pages/ # User pages
+│ │ ├── admin/ # Admin panel
+│ │ ├── components/ # Reusable components
+│ │ └── services/ # API services
+│ ├── package.json
+│ └── vite.config.js
+│
+├── android/
+│ └── tracking_app/ # Android Tracking App
+│ ├── app/src/main/java/ # Kotlin code
+│ └── app/src/main/res/ # Resources
+│
+├── android-employee/
+│ └── employee_app/ # Android Employee App
+│ ├── app/src/main/java/ # Kotlin code
+│ └── app/src/main/res/ # Resources
+│
+├── infrastructure/
+│ └── docker/ # Docker configuration
+│ ├── docker-compose.yml
+│ ├── Dockerfile.backend
+│ └── Dockerfile.frontend
+│
+└── docs/ # Documentation
+
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- MongoDB 7.0+
+- Redis 7.0+
+- Android Studio (for Android apps)
+
+### Backend Setup
+
+```bash
+cd backend-python
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+python main.py
