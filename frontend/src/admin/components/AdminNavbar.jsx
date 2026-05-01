@@ -54,6 +54,14 @@ const AdminNavbar = () => {
             📱 Invite User
           </NavLink>
           
+          {/* Security & Community */}
+          <NavLink to="/admin/imei-blacklist" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
+            📱 IMEI Blacklist
+          </NavLink>
+          <NavLink to="/admin/community-alerts" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
+            🌍 Community Alerts
+          </NavLink>
+          
           {/* Financial */}
           <NavLink to="/admin/commission" className={({ isActive }) => isActive ? 'admin-nav-link active' : 'admin-nav-link'}>
             💰 Admin Commission

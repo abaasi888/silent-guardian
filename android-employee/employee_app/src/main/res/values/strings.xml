@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.SilentGuardian" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary_purple</item>
+        <item name="android:statusBarColor">@color/dark_blue</item>
+    </style>
+    <style name="Theme.SilentGuardian.Splash" parent="Theme.SilentGuardian">
+        <item name="android:windowBackground">@color/dark_blue</item>
+    </style>
+</resources>

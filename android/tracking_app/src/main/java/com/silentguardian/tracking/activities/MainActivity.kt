@@ -368,4 +368,42 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         mainScope.cancel()
     }
+
+    // Add this to detect if app is running on a compromised device
+private fun checkTampering() {
+    // Check if app is installed from official source
+    val packageInfo = packageManager.getPackageInfo(packageName, 0)
+    val isSystemApp = (packageInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+    
+    if (!isSystemApp) {
+        // App was installed manually, might be a copy
+        sendTamperAlert()
+    }
+    
+    // Check if device is rooted
+    val isRooted = checkRoot()
+    if (isRooted) {
+        sendRootAlert()
+    }
+}
+
+private fun checkRoot(): Boolean {
+    val rootFiles = arrayOf(
+        "/system/app/Superuser.apk",
+        "/sbin/su",
+        "/system/bin/su",
+        "/system/xbin/su",
+        "/data/local/xbin/su",
+        "/data/local/bin/su",
+        "/system/sd/xbin/su",
+        "/system/bin/failsafe/su",
+        "/data/local/su"
+    )
+    
+    for (path in rootFiles) {
+        if (File(path).exists()) return true
+    }
+    
+    return false
+}
 }

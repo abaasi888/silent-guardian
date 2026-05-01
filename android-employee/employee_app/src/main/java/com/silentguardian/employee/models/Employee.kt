@@ -1,29 +1,37 @@
-package com.silentguardian.models
+package com.silentguardian.employee.models
+
+import com.google.gson.annotations.SerializedName
 
 data class Employee(
-    val id: Int,
-    val name: String,
-    val email: String,
-    val phone: String,
-    val role: String,
-    val status: String,
-    val commissionRate: Int,
-    val baseSalary: Double,
-    val employmentType: String, // "contractor" or "permanent"
-    val joinDate: String,
-    val totalSignups: Int,
-    val totalCommission: Double,
-    val lastPayout: String,
-    val permanentEligible: Boolean,
-    val careerStage: String,
-    val promotionDate: String? = null,
-    val signups: List<Signup>
+    @SerializedName("id") val id: Int,
+    @SerializedName("fullName") val fullName: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("phone") val phone: String,
+    @SerializedName("role") val role: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("commissionRate") val commissionRate: Int,
+    @SerializedName("baseSalary") val baseSalary: Double,
+    @SerializedName("employmentType") val employmentType: String, // "contractor" or "permanent"
+    @SerializedName("joinDate") val joinDate: String,
+    @SerializedName("totalSignups") val totalSignups: Int,
+    @SerializedName("totalCommission") val totalCommission: Double,
+    @SerializedName("lastPayout") val lastPayout: String,
+    @SerializedName("permanentEligible") val permanentEligible: Boolean,
+    @SerializedName("careerStage") val careerStage: String,
+    @SerializedName("promotionDate") val promotionDate: String? = null
 )
 
-data class Signup(
-    val userId: String,
-    val plan: String,
-    val amount: Double,
-    val date: String,
-    val status: String
+data class ChatMessage(
+    val id: String,
+    val from: String,
+    val text: String,
+    val timestamp: String,
+    val read: Boolean
+)
+
+data class CommissionData(
+    val totalCommission: Double,
+    val monthlyCommission: Double,
+    val totalSignups: Int,
+    val monthlySignups: Int
 )

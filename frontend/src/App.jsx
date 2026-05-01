@@ -32,6 +32,8 @@ import EmployeeChat from './admin/components/EmployeeChat'
 import InviteEmployee from './admin/pages/InviteEmployee'
 import InviteUser from './admin/pages/InviteUser'
 import AdminCommission from './admin/pages/AdminCommission'
+import ImeiBlacklist from './admin/pages/ImeiBlacklist'
+import CommunityAlerts from './admin/pages/CommunityAlerts'
 
 // Component to handle role-based redirect
 const RoleBasedRedirect = () => {
@@ -124,6 +126,8 @@ function App() {
             <Route path="audit" element={<AuditLogs />} />
             <Route path="reports" element={<Reports />} />
             <Route path="backup" element={<Backup />} />
+            <Route path="imei-blacklist" element={<ImeiBlacklist />} />
+            <Route path="community-alerts" element={<CommunityAlerts />} />
             <Route path="profile" element={<ProfileAdmin />} />
             <Route path="settings" element={<Settings />} />
             <Route path="chat" element={<LiveChatAdmin />} />

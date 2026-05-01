@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp" android:background="@color/background_gray">
+    <TextView android:text="Invite New Users" android:textSize="24sp" android:textStyle="bold"
+        android:textColor="@color/dark_blue" android:gravity="center"/>
+    <TextView android:text="Share invite links. You earn commission on every signup!"
+        android:textColor="@color/gray" android:gravity="center" android:layout_marginTop="8dp"/>
+
+    <TextView android:text="Generate Invite Link" android:textStyle="bold" android:layout_marginTop="24dp"/>
+    <EditText android:id="@+id/etEmail" android:hint="Email (optional)" android:padding="12dp"
+        android:background="@drawable/bg_input" android:layout_marginTop="8dp"/>
+    <EditText android:id="@+id/etPhone" android:hint="Phone (optional)" android:padding="12dp"
+        android:background="@drawable/bg_input" android:layout_marginTop="8dp"/>
+    <Button android:id="@+id/btnGenerate" android:text="Generate Invite Link" android:layout_marginTop="16dp"/>
+
+    <TextView android:id="@+id/tvInviteLink" android:background="@color/light_gray"
+        android:padding="12dp" android:layout_marginTop="16dp" android:visibility="gone"/>
+
+    <TextView android:text="Share Invite" android:textStyle="bold" android:layout_marginTop="16dp"/>
+    <Button android:id="@+id/btnCopy" android:text="📋 Copy Link" android:layout_marginTop="8dp"/>
+    <Button android:id="@+id/btnShare" android:text="📤 Share Link" android:backgroundTint="@color/info_blue"/>
+    <Button android:id="@+id/btnSendEmail" android:text="📧 Send Email" android:backgroundTint="@color/primary_purple"/>
+    <Button android:id="@+id/btnSendSms" android:text="📱 Send SMS" android:backgroundTint="@color/success_green"/>
+</LinearLayout>

@@ -1,0 +1,14 @@
+<resources>
+    <color name="dark_blue">#1a1a2e</color>
+    <color name="background_gray">#f5f7fa</color>
+    <color name="gray">#666666</color>
+    <color name="light_gray">#e0e0e0</color>
+    <color name="primary_purple">#9c27b0</color>
+    <color name="success_green">#4caf50</color>
+    <color name="error_red">#f44336</color>
+    <color name="warning_orange">#ff9800</color>
+    <color name="info_blue">#2196f3</color>
+    <color name="permanent_green">#4caf50</color>
+    <color name="contractor_orange">#ff9800</color>
+    <color name="white">#ffffff</color>
+</resources>
