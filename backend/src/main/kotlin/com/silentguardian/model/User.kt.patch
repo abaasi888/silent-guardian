@@ -1,4 +1,0 @@
-// Add these fields inside User data class (after kycData)
-    var subscriptionId: String? = null,
-    var subscriptionActive: Boolean = false,
-    var subscriptionExpiry: Date? = null
