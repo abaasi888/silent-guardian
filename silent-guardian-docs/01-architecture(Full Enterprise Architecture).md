@@ -1,6 +1,6 @@
-# Silent Guardian - Full Enterprise Architecture
+<h1 align="center">Silent Guardian - Full Enterprise Architecture </h1>
 
-## Version: 1.0 (All Features Active)
+<h1 align="center">Version: 1.0 (All Features Active) </h1>
 
 ---
 
